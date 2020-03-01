@@ -91,6 +91,24 @@ def writeGamepks():
                 f.write("No data for gamepk #\n")
                 f.write(gamepkDivider + "\n")
 
+def writeGamepks2():
+    gamepkDivider = "*"*60
+    gamepks = []
+    fo = open("output.txt", "w")
+    fp = open("team_gameData/AllGames.txt")
+    line = fp.readline()
+    while line != "":
+        gm = int(line[5:11])
+        if gm not in gamepks:
+            try:
+                fo.write("gamepk: " + str(gm) + "\n")
+                fo.write(mlb.boxscore(gm))
+                fo.write(gamepkDivider + "\n")
+            except:
+                fo.write("No data for gamepk #\n")
+                fo.write(gamepkDivider + "\n")
+        gamepks.append(gm)
+        line = fp.readline()
 
 def generateUnsortedLists():
     for tm in teams_list:
@@ -174,8 +192,8 @@ def sortTeamGames():
                     if (date < min):
                         min = date
                         minLine = line
-                if min > Date("March", 27, 2019) and min < Date("September", 30, 2019):
-                    fo.write(minLine)
+                # if min > Date("March", 27, 2019) and min < Date("September", 30, 2019):
+                fo.write(minLine)
                 fb.close()
                 lines = getLines(tm)
                 deleteLine(tm, lines, minLine)
@@ -201,8 +219,53 @@ def getNextGame(tm, gamepk):
                 try: return f.readline()[5:11]
                 except: return None
 
+def insertFileLine(fname, index, line):
+    f = open(fname, "r")
+    contents = f.readlines()
+    f.close()
+
+    contents.insert(index, line)
+
+    f = open(fname, "w")
+    f.writelines(contents)
+    f.close()
+
+def createGamesInOrder():
+    fo = open(SAVE_PATH + "AllGames.txt", "w")
+    fr = open(SAVE_PATH + "Angels.txt", "r")
+    contents = fr.readlines()
+    fo.writelines(contents)
+    fr.close()
+    fo.close()
+    for tm in teams_list[1:]:
+        ft = open(SAVE_PATH + tm.replace(" ", "_") + ".txt", "r")
+        line = ft.readline()
+        while(line != ""):
+            lineNum = 0
+            date = line[13:].replace(",", "").split()
+            date = Date(date[0], int(date[1]), int(date[2]))
+            fp = open(SAVE_PATH + "AllGames.txt", "r")
+            otherLine = fp.readline()
+            inserted = False
+            while(otherLine != ""):
+                date2 = otherLine[13:].replace(",", "").split()
+                date2 = Date(date2[0], int(date2[1]), int(date2[2]))
+                if date < date2 or date == date2:
+                    fp.close()
+                    insertFileLine(SAVE_PATH + "AllGames.txt", lineNum, line)
+                    inserted = True
+                    break
+                lineNum += 1
+                otherLine = fp.readline()
+            if not inserted:
+                fp.close()
+                insertFileLine(SAVE_PATH + "AllGames.txt", lineNum, line)
+            line = ft.readline()
+        ft.close()
+    fp.close()
+
+# writeGamepks2()
 # generateUnsortedLists()
 # sortTeamGames()
 # deleteUnsortedFiles()
-
-print(mlb.boxscore_data(565997))
+# createGamesInOrder()
