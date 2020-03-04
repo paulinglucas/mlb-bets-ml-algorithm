@@ -127,3 +127,13 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# messed up files
+stats.py
+player.py
+mlb_odds_2019.csv
+tiff.py
+references
+AllGames.txt
+team_gameData/*
+team_playerData/*
