@@ -4,8 +4,8 @@ lst = []
 outputLst = []
 
 
-DATA = p.extractPickle("all_games.pickle", "game_data/")
-ODDS = p.extractPickle("all_odds.pickle", "odds_data/")
+DATA = p.extractPickle("all_games.pickle")
+ODDS = p.extractPickle("all_odds.pickle")
 LENGTH_OF_LIST = 38
 
 # remember to add the stats into the gamepacks BEFOREHAND
@@ -23,18 +23,18 @@ def addToList():
             line = f.readline()
     # Tigers/White Sox game with zero data
     del lst[1910]
-    p.addToPickle(lst, "twoD_list.pickle", "game_data/")
+    p.addToPickle(lst, "twoD_list.pickle")
 
-
+# adds output vectors to odds dictionary to be used as labels for tensorflow
 def checkOdds():
     """
-    Vector results as follows:
-    Win Home
-    Win Away
-    Home covered spread
-    Away covered spread
-    Over
-    Under
+    Vector order as follows: [1,2,3,4,5,6]
+    1. Win Home
+    2. Win Away
+    3. Home covered spread
+    4. Away covered spread
+    5. Over
+    6. Under
     """
     with open("team_gameData/AllGamesOnce.txt", "r") as f:
         output_vector = [0,0,0,0,0,0]
@@ -53,40 +53,37 @@ def checkOdds():
             awayGameOdds = ODDS[gmpk]['away']
             homeGameOdds = ODDS[gmpk]['home']
             oddsToCheck = awayGameOdds
+            spreadCheck = score[0] - score[1]
             if score[2] == "Home":
                 output_vector[0] = 1
-                difference = score[0] - score[1]
-                oddsToCheck = homeGameOdds
             else:
                 output_vector[1] = 1
-                difference = score[1] - score[0]
-            if difference < (float(oddsToCheck[2]) - .2):
+            if (spreadCheck - float(oddsToCheck[2])) < .1 :
                 output_vector[2] = 1
-            elif (difference - .2) > float(oddsToCheck[2]):
+            elif (spreadCheck - float(oddsToCheck[2])) > .1:
                 output_vector[3] = 1
-            if float(score[0] + score[1]) > (float(oddsToCheck[6]) + .2):
+            if (float(score[0] + score[1]) - (float(oddsToCheck[6]))) > .2:
                 output_vector[4] = 1
-            elif (float(score[0] + score[1]) + .2) < float(oddsToCheck[6]):
+            elif (float(score[0] + score[1]) - float(oddsToCheck[6])) < .2:
                 output_vector[5] = 1
             outputLst.append(output_vector)
             line = f.readline()
-    p.addToPickle(outputLst, "outcome_vectors.pickle", "odds_data/")
+    p.addToPickle(outputLst, "outcome_vectors.pickle")
 
-
+# gets binary spread output of every game
 def spread():
     newLst = []
-    lst = p.extractPickle("outcome_vectors.pickle", "odds_data/")
+    lst = p.extractPickle("outcome_vectors.pickle")
     for i in range(len(lst)):
-        if lst[i][2] == 1:
-            newLst.append([1,0,0])
-        elif lst[i][3] == 1:
-            newLst.append([0,1,0])
-        else: newLst.append([0,0,1])
-    p.addToPickle(newLst, "spreads.pickle", "odds_data/")
+        if lst[i][0] == 1:
+            newLst.append([1,0])
+        elif lst[i][1] == 1:
+            newLst.append([0,1])
+    p.addToPickle(newLst, "spreads.pickle")
 
-
+# used as reference, puts all team stats gathered into convenient CSV
 def listToCSV(lst):
-    with open("the_meat_and_potatos/2019stats.csv", "w") as f:
+    with open("references/2019stats.csv", "w") as f:
         #write in header
         f.write("Away_Avg,Obp,Slg,Ops,Rpg,Hrpg,Sopg,Lh%,P-hand,Era,Whip,Hrp9,")
         f.write("Sop9,Ipg,B-Era,B-Whip,B-Hrp9,B-Sop9,Bspg,Home_Avg,Obp,Slg,Ops,")
@@ -98,11 +95,3 @@ def listToCSV(lst):
             line = ",".join(map(str, lst[i]))
             f.write(line)
             f.write("\n")
-
-# addToList()
-# checkOdds()
-# 38 x 2426 entries... seems legit
-spread()
-# start to do some machine learning ladies and gentlemen...
-# lst = p.extractPickle("twoD_list.pickle", "game_data/")
-# listToCSV(lst)

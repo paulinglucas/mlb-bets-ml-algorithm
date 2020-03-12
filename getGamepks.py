@@ -11,39 +11,6 @@ import os
 BEG_2019_SZN_GAMEPK = 564734
 END_2019_SZN_GAMEPK = 567633
 
-mlb_teams = ({
-"Angels": 108,
-"D-backs": 109,
-"Orioles": 110,
-"Red_Sox": 111,
-"Cubs": 112,
-"Reds": 113,
-"Indians": 114,
-"Rockies": 115,
-"Tigers": 116,
-"Astros": 117,
-"Royals": 118,
-"Dodgers": 119,
-"Nationals": 120,
-"Mets": 121,
-"Athletics": 133,
-"Pirates": 134,
-"Padres": 135,
-"Mariners": 136,
-"Giants": 137,
-"Cardinals": 138,
-"Rays": 139,
-"Rangers": 140,
-"Blue_Jays": 141,
-"Twins": 142,
-"Phillies": 143,
-"Braves": 144,
-"White_Sox": 145,
-"Marlins": 146,
-"Yankees": 147,
-"Brewers": 158
-})
-
 teams_list = ([
 "Angels",
 "D-backs",
@@ -79,32 +46,28 @@ teams_list = ([
 
 SAVE_PATH = "team_gameData/"
 
+# write boxscore of every game of 2019
 def writeGamepks():
     gamepkDivider = "*"*60
-    gamepks = []
-    fo = open("output.txt", "w")
-    fp = open("team_gameData/AllGames.txt")
-    line = fp.readline()
-    while line != "":
+    fo = open("references/output.txt", "w")
+    for gm in range(BEG_2019_SZN_GAMEPK, END_2019_SZN_GAMEPK+1):
         gm = int(line[5:11])
-        if gm not in gamepks:
-            try:
-                fo.write("gamepk: " + str(gm) + "\n")
-                fo.write(mlb.boxscore(gm))
-                fo.write(gamepkDivider + "\n")
-            except:
-                fo.write("No data for gamepk #\n")
-                fo.write(gamepkDivider + "\n")
-        gamepks.append(gm)
-        line = fp.readline()
+        try:
+            fo.write("gamepk: " + str(gm) + "\n")
+            fo.write(mlb.boxscore(gm))
+            fo.write(gamepkDivider + "\n")
+        except:
+            fo.write("No data for gamepk #\n")
+            fo.write(gamepkDivider + "\n")
 
+# generate list to be sorted later for every team
 def generateUnsortedLists():
     for tm in teams_list:
         fg = open(SAVE_PATH + tm.replace(" ", "_") + "_Unsorted.txt", "w")
         fg.write("")
     fg.close()
 
-    fh = open("output.txt", "r")
+    fh = open("references/output.txt", "r")
     for gm in range(BEG_2019_SZN_GAMEPK, END_2019_SZN_GAMEPK+1):
         line = fh.readline()
         gamepk = line[8:14]
@@ -140,7 +103,7 @@ def generateUnsortedLists():
             fh.readline()
     fh.close()
 
-
+# sort unsorted list
 def sortTeamGames():
 
 
@@ -194,12 +157,13 @@ def sortTeamGames():
                 lineNum -= 1
         fo.close()
 
+# only using sorted
 def deleteUnsortedFiles():
     for tm in teams_list:
         os.remove(SAVE_PATH + tm.replace(" ", "_") + "_Unsorted.txt")
 
 
-
+# add in all gamepacks into one file
 def createGamesInOrder():
 
 

@@ -1,5 +1,8 @@
 import getGamepks as gm
 import gatherPlayers as players
+import gameStats as stat
+import extractOdds as odds
+import createUsableList.py as lst
 
 def main():
 
@@ -14,6 +17,17 @@ def main():
     # separated by batting and pitching stats
     players.allGamesOnce()
     players.gatherStats()
+
+    # creates team stats leading up to every mlb game ... 2426 games in total
+    stat.addInAllStats()
+
+    # get odds of every game, one seemed to not have any ... 2425 game odds
+    odds.extractAllOdds()
+
+    # create lists to load into machine learning algorithm
+    lst.addToList()
+    lst.checkOdds()
+    lst.spread()
 
 if __name__ == "__main__":
     main()

@@ -3,9 +3,9 @@ import getGamepks as gm
 import statsapi as mlb
 from enum import IntEnum
 
-BATTERS = p.extractPickle("batters.pickle", "team_playerData/")
-PITCHERS = p.extractPickle("pitchers.pickle", "team_playerData/")
-SCORES = p.extractPickle('scores.pickle', "team_outcomes/")
+BATTERS = p.extractPickle("batters.pickle")
+PITCHERS = p.extractPickle("pitchers.pickle")
+SCORES = p.extractPickle('scores.pickle')
 
 DATA = {'gmpks': {}}
 # gmpks: outcome, data away, data home
@@ -57,6 +57,8 @@ inputs_list = ([
 "Bullpen HRPG"
 ])
 
+# get gamepack of last game played in reference to gamepack parameter using
+# team file
 def getPreviousTeamGame(tm, gamepk):
     with open(SAVE_PATH + tm.replace(" ", "_") + ".txt") as f:
         prevLine = None
@@ -65,6 +67,7 @@ def getPreviousTeamGame(tm, gamepk):
                 return prevLine[5:11]
             prevLine = line
 
+# gets game after gamepack param
 def getNextTeamGame(tm, gamepk):
     with open(SAVE_PATH + tm.replace(" ", "_") + ".txt") as f:
         for line in f:
@@ -72,7 +75,7 @@ def getNextTeamGame(tm, gamepk):
                 try: return f.readline()[5:11]
                 except: return None
 
-
+# get previous game played of player
 def getPreviousGame(batOrPitch, player, gmpk):
     if batOrPitch == 'Batter':
         p = BATTERS[player]['gmpksInOrder']
@@ -82,10 +85,10 @@ def getPreviousGame(batOrPitch, player, gmpk):
         return gmpk
     return p[idx-1]
 
-
+# batter stats going in
 def addBatterStats(batStats, gmpk, lineup):
 
-
+    # returns stat of lineup
     def averageLineupStats(stat, gmpk, lineup, perGame=False):
         statSum = 0
         count = 0
@@ -105,7 +108,7 @@ def addBatterStats(batStats, gmpk, lineup):
         else: statAvg = round(statSum / count, 3)
         return statAvg
 
-
+    # add in stats to batter stats
     batStats[BatterStats.BA] = averageLineupStats('avg', gmpk, lineup)
     batStats[BatterStats.OBP] = averageLineupStats('obp', gmpk, lineup)
     batStats[BatterStats.SLG] = averageLineupStats('slg', gmpk, lineup)
@@ -115,6 +118,7 @@ def addBatterStats(batStats, gmpk, lineup):
     batStats[BatterStats.SOPG] = averageLineupStats('strikeOuts', gmpk, lineup, True)
     lhpSum = 0
     count = 0
+    # get % lineup that is left-handed
     try:
         for player in lineup:
             if BATTERS[player]['bats'] == "L":
@@ -124,7 +128,9 @@ def addBatterStats(batStats, gmpk, lineup):
     lhpPercent = round(lhpSum / count, 2)
     batStats[BatterStats.LHP] = lhpPercent
 
+# add in pitcher stats
 def addPitcherStats(pitchingStats, gmpk, pitcher):
+    # make L 0 and R 1 for tensorflow purposes
     if PITCHERS[pitcher]['throws'] == "L":
         pitchingStats[PitcherStats.HAND] = 0
     else:
@@ -141,6 +147,7 @@ def addPitcherStats(pitchingStats, gmpk, pitcher):
     pitchingStats[PitcherStats.IPG] = round(float(PITCHERS[pitcher]['gmpks'][gmpk]['inningsPitched']) / \
         float(PITCHERS[pitcher]['gmpks'][gmpk]['gamesPlayed']), 3)
 
+# bullpen stats going in too
 def addBullpenStats(pitchingStats, gmpk, tm):
     bpName = tm + " Bullpen"
     pitchingStats[PitcherStats.bERA] = float(PITCHERS[bpName]['gmpks'][gmpk]['era'])
@@ -155,6 +162,7 @@ def addBullpenStats(pitchingStats, gmpk, tm):
     pitchingStats[PitcherStats.BSPG] = round(float(PITCHERS[bpName]['gmpks'][gmpk]['blownSaves']) / \
         float(PITCHERS[bpName]['gmpks'][gmpk]['gamesPlayed']), 3)
 
+# get game stats of every game of 2019
 def gatherGameStats(gmpk, count):
     stats = {"away": [], "home": [], "outcome": []}
     DATA['gmpks'][gmpk] = stats
@@ -207,7 +215,7 @@ def gatherGameStats(gmpk, count):
     DATA['gmpks'][gmpk] = stats
     return 1
 
-
+# add all stats to DATA dictionary
 def addInAllStats():
     with open("team_gameData/AllGamesOnce.txt", "r") as f:
         line = f.readline()
@@ -217,7 +225,7 @@ def addInAllStats():
             gatherGameStats(gmpk, count)
             line = f.readline()
             count += 1
-        p.addToPickle(DATA, "all_games.pickle", "game_data/")
+        p.addToPickle(DATA, "all_games.pickle")
 
 
 
@@ -233,15 +241,6 @@ def addInAllStats():
 
     we want to feed in long list of stats containing teams batting stats and
     opponents pitching stats to see which team is more likely to win
+
+    maybe add in wind direction/stadium?
 """
-
-# print(mlb.boxscore_data(566443))
-addInAllStats()
-# maybe add in wind direction and stadium?
-# validate that the stats were configured correctly
-
-# TODO: Refactor!!
-# TODO: gather team stats from individual stats (team BA, etc)
-# TODO: create list to be fed in correctly
-DATA = p.extractPickle("all_games.pickle", "game_data/")
-print(DATA)

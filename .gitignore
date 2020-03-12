@@ -135,5 +135,7 @@ mlb_odds_2019.csv
 tiff.py
 references
 AllGames.txt
-team_gameData/*
-team_playerData/*
+team_gameData
+pickle_files
+debuggingTeamStats.py
+tiff2.py

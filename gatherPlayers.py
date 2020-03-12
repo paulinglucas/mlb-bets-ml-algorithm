@@ -7,22 +7,21 @@ import sys
 
 ALL_BATTERS = {}
 ALL_PITCHERS = {}
-
-
-# 'away': {}, 'home': {}
 SCORES = {}
 
-SAVE_PATH = "team_playerData/"
+SAVE_PATH = "pickle_files/"
 
-
+# adds dictionary to pickle file
 def addToPickle(variabl, fname, save_path=SAVE_PATH):
     with open(save_path + fname, "wb") as f:
         pickle.dump(variabl, f)
 
-def extractPickle(fname, save_path = SAVE_PATH):
+# gets variable from pickle to be used for later
+def extractPickle(fname, save_path=SAVE_PATH):
     with open(save_path + fname, "rb") as f:
         return pickle.load(f)
 
+# removes duplicates of AllGames.txt
 def allGamesOnce():
     with open("team_gameData/AllGames.txt", "r") as f:
         with open("team_gameData/AllGamesOnce.txt", "w") as fw:
@@ -35,10 +34,10 @@ def allGamesOnce():
                 gmpks.append(line)
                 line = f.readline()
 
-
+# get all stats from different players and merge them into necessary team stats
 def gatherStats():
 
-
+    # gets score of game along with winning team
     def addScore(game, gmpk):
 
         def winOrLose(score):
@@ -61,7 +60,7 @@ def gatherStats():
         if success:
             SCORES[gmpk] = awayScore
 
-
+    # gets dominant batting and throwing hand of each player
     def throwsAndBats(id):
         urlBegin = "http://lookup-service-prod.mlb.com/json/named.player_info.bam?sport_code='mlb'&player_id='"
         urlEnd = "'&player_info.col_in=bats&player_info.col_in=throws"
@@ -70,13 +69,14 @@ def gatherStats():
         queries = r.json()['player_info']['queryResults']['row']
         return (queries['throws'], queries['bats'])
 
-
+    # adds player to databse with no game data
     def addPlayerInfo(playerInfo):
         for player in playerInfo:
             p = playerInfo.get(player)
             personInfo = p['person']
             id = personInfo['id']
             statInfo = p['stats']
+            # don't run through this code if player already received
             if id not in ALL_BATTERS or id not in ALL_PITCHERS:
                 didHeBat = len(statInfo['batting'])
                 didHePitch = len(statInfo['pitching'])
@@ -87,7 +87,8 @@ def gatherStats():
                     throws_bats = throwsAndBats(id)
                     ALL_PITCHERS[id] = {'fullName': personInfo['fullName'], 'bats': throws_bats[1], 'throws': throws_bats[0], 'gmpksInOrder': [], 'gmpks': {}}
 
-
+    # add current game as game played for all players who had at bats or
+    # threw any pitches, place in respective data type
     def addCurrentSeasonStats(playerList, gmpk):
         for player in playerList:
             p = playerList.get(player)
@@ -106,7 +107,7 @@ def gatherStats():
                     currentGame = playerGames[gmpk] = p['seasonStats']['pitching']
                     currentGame['gamesPlayed'] = len(playerGames)
 
-
+    # 6.2 IP == 6.67 IP used for calculation purposes
     def convertInnings(innings):
         toAdd = 0
         if (innings % 1) > 0.02:
@@ -117,7 +118,7 @@ def gatherStats():
         innings = floor(innings) + toAdd
         return innings
 
-
+    # bullpen of every team updated along the way
     def updateBullpen(bullpen, player, team):
         p = team['players'].get('ID'+str(player))
         p = p['stats']['pitching']
@@ -176,7 +177,7 @@ def gatherStats():
             ALL_PITCHERS[id]['gmpks'][gmpk] = ALL_PITCHERS[id]['gmpks'][prevGame]
 
 
-
+    # driving code
     with open("team_gameData/AllGamesOnce.txt", "r") as f:
         line = f.readline()
         count = 0
@@ -200,7 +201,7 @@ def gatherStats():
 
         addToPickle(ALL_BATTERS, 'batters.pickle')
         addToPickle(ALL_PITCHERS, 'pitchers.pickle')
-        addToPickle(SCORES, 'scores.pickle', 'team_outcomes/')
+        addToPickle(SCORES, 'scores.pickle')
 
 """
 hierarchy:
@@ -244,7 +245,3 @@ Pitchers:
         'rbi'
 
         """
-# allGamesOnce()
-# gatherStats()
-# ALL_PITCHERS = extractPickle('pitchers.pickle')
-# print(ALL_PITCHERS[641816])

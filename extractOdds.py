@@ -60,68 +60,73 @@ teams = ({
 
 # 15 through 22
 
-def getDate(dict):
-    date = dict['gameId'][:10]
-    dateMonth = date[6]
-    dateDay = date[8:10]
-    return dateMonth + dateDay
-
-def makeNumbers(line):
-    for i in range(15,23):
-        if line[i] == "NL":
-            line[i] = line[i]
-        elif "." in line[i]:
-            line[i] = float(line[i])
-        else: line[i] = int(line[i])
-    return line
-
-def convertAmericanToDecimal(odds):
-    for i in range(8):
-        if i % 2 == 0: continue
-        if odds[i] < 0:
-            odds[i] = 1 - (100 / odds[i])
-        else:
-            odds[i] = 1 + (odds[i] / 100)
-    return odds
+def extractAllOdds():
 
 
-def matchGmpkToLine(gmpk, dict):
-    oddsDate = getDate(dict)
-    gmpkOdds = {'away': [], 'home': []}
+    def matchGmpkToLine(gmpk, dict):
 
-    with open("mlb_odds_2019.csv", "r") as f:
-        f.readline()
-        line = f.readline()
-        while line != "":
-            line = line.strip().split(",")
-            if line[0] != oddsDate:
-                line = f.readline()
-                continue
-            team = teams[line[3]]
-            homeOrAway = homeAway[line[2]]
 
-            if homeOrAway == 'away':
-                if team != dict['teamInfo']['away']['teamName']:
+        def getDate(dict):
+            date = dict['gameId'][:10]
+            dateMonth = date[6]
+            dateDay = date[8:10]
+            return dateMonth + dateDay
+
+        def makeNumbers(line):
+            for i in range(15,23):
+                if line[i] == "NL":
+                    line[i] = line[i]
+                elif "." in line[i]:
+                    line[i] = float(line[i])
+                else: line[i] = int(line[i])
+            return line
+
+        def convertAmericanToDecimal(odds):
+            for i in range(8):
+                if i % 2 == 0: continue
+                if odds[i] < 0:
+                    odds[i] = 1 - (100 / odds[i])
+                else:
+                    odds[i] = 1 + (odds[i] / 100)
+            return odds
+
+
+        oddsDate = getDate(dict)
+        gmpkOdds = {'away': [], 'home': []}
+
+        with open("references/mlb_odds_2019.csv", "r") as f:
+            f.readline()
+            line = f.readline()
+            while line != "":
+                line = line.strip().split(",")
+                if line[0] != oddsDate:
                     line = f.readline()
                     continue
-            else:
-                line = f.readline()
-                continue
+                team = teams[line[3]]
+                homeOrAway = homeAway[line[2]]
 
-            homeLine = f.readline().strip().split(",")
-            line = makeNumbers(line)
-            homeLine = makeNumbers(homeLine)
-            line = convertAmericanToDecimal(line[15:23])
-            homeLine = convertAmericanToDecimal(homeLine[15:23])
+                if homeOrAway == 'away':
+                    if team != dict['teamInfo']['away']['teamName']:
+                        line = f.readline()
+                        continue
+                else:
+                    line = f.readline()
+                    continue
 
-            gmpkOdds['away'] = line
-            gmpkOdds['home'] = homeLine
+                homeLine = f.readline().strip().split(",")
+                line = makeNumbers(line)
+                homeLine = makeNumbers(homeLine)
+                line = convertAmericanToDecimal(line[15:23])
+                homeLine = convertAmericanToDecimal(homeLine[15:23])
 
-            ODDS[gmpk] = gmpkOdds
-            return True
-        return False
+                gmpkOdds['away'] = line
+                gmpkOdds['home'] = homeLine
 
-def extractAllOdds():
+                ODDS[gmpk] = gmpkOdds
+                return True
+            return False
+
+
     with open("team_gameData/AllGamesOnce.txt", "r") as f:
         line = f.readline()
         count = 0
@@ -135,8 +140,4 @@ def extractAllOdds():
                 ODDS[gmpk] = "No odds"
                 print("No odds")
             line = f.readline()
-    p.addToPickle(ODDS, "all_odds.pickle", "odds_data/")
-
-#extractAllOdds()
-# ODDS = p.extractPickle("all_odds.pickle", "odds_data/")
-# print(ODDS[565901])
+    p.addToPickle(ODDS, "all_odds.pickle")

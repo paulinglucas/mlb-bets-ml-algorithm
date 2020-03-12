@@ -3,9 +3,9 @@ import getGamepks as gm
 import statsapi as mlb
 from enum import IntEnum
 
-BATTERS = p.extractPickle("batters.pickle", "team_playerData/")
-PITCHERS = p.extractPickle("pitchers.pickle", "team_playerData/")
-SCORES = p.extractPickle('scores.pickle', "team_outcomes/")
+BATTERS = p.extractPickle("batters.pickle")
+PITCHERS = p.extractPickle("pitchers.pickle")
+SCORES = p.extractPickle('scores.pickle')
 TEAM_STATS = {}
 SAVE_PATH = "team_statData/"
 
@@ -170,7 +170,7 @@ def addInAllStats():
     createTeamDicts()
     for tm in gm.teams_list:
         gatherTeamStats(tm)
-    p.addToPickle(TEAM_STATS, "all_team_stats.pickle", "team_stats/")
+    p.addToPickle(TEAM_STATS, "all_team_stats.pickle")
 
 
 """
@@ -185,18 +185,6 @@ def addInAllStats():
 
     we want to feed in long list of stats containing teams batting stats and
     opponents pitching stats to see which team is more likely to win
+
+    maybe add in wind direction/stadium?
 """
-
-# print(mlb.boxscore_data(566443))
-# addInAllStats()
-# maybe add in wind direction and stadium?
-# validate that the stats were configured correctly
-
-# TODO: Refactor!!
-# TODO: gather team stats from individual stats (team BA, etc)
-# TODO: create list to be fed in correctly
-
-scores = p.extractPickle("scores.pickle", "team_outcomes/")
-teams = p.extractPickle("all_team_stats.pickle", "team_stats/")
-for game in teams['Brewers']['gameStats']:
-    print(game, teams['Brewers']['gameStats'][game][0], teams['Brewers']['gameStats'][game][1])
