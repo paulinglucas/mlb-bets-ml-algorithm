@@ -78,7 +78,6 @@ Home 565550: June 28, 2019
 Home 565551: June 29, 2019
 Home 565552: June 30, 2019
 Away 567273: July 3, 2019
-Away 567304: July 3, 2019
 Away 567306: July 4, 2019
 Home 565553: July 5, 2019
 Home 565554: July 6, 2019

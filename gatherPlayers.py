@@ -1,32 +1,26 @@
-import gamepks as gm
+import getGamepks as gm
 import statsapi as mlb
-import stats as s
 import requests
 import pickle
 from math import floor
+import sys
 
 ALL_BATTERS = {}
 ALL_PITCHERS = {}
+
+
+# 'away': {}, 'home': {}
+SCORES = {}
+
 SAVE_PATH = "team_playerData/"
 
-inputs_list = ([
-"Team BA",
-"Team OBP",
-"Team SLG",
-"Team RPG",
-"Team HRPG",
-"Starter ERA",
-"Starter WHIP",
-"Last Start ERA",
-"Bullpen ERA"
-])
 
-def addToPickle(variabl, fname):
-    with open(SAVE_PATH + fname, "wb") as f:
+def addToPickle(variabl, fname, save_path=SAVE_PATH):
+    with open(save_path + fname, "wb") as f:
         pickle.dump(variabl, f)
 
-def extractPickle(fname):
-    with open(SAVE_PATH + fname, "rb") as f:
+def extractPickle(fname, save_path = SAVE_PATH):
+    with open(save_path + fname, "rb") as f:
         return pickle.load(f)
 
 def allGamesOnce():
@@ -41,31 +35,31 @@ def allGamesOnce():
                 gmpks.append(line)
                 line = f.readline()
 
-def getPreviousTeamGame(tm, gamepk):
-    with open(SAVE_PATH + tm.replace(" ", "_") + ".txt") as f:
-        prevLine = None
-        for line in f:
-            if line[5:11] == gamepk:
-                return prevLine[5:11]
-            prevLine = line
-
-def getNextTeamGame(tm, gamepk):
-    with open(SAVE_PATH + tm.replace(" ", "_") + ".txt") as f:
-        for line in f:
-            if line[5:11] == gamepk:
-                try: return f.readline()[5:11]
-                except: return None
-
-
-def getPreviousGame(player, gmpk):
-    p = player['gmpksInOrder']
-    idx = p.index(gmpk)
-    if idx == 0:
-        return None
-    return p[idk-1]
-
 
 def gatherStats():
+
+
+    def addScore(game, gmpk):
+
+        def winOrLose(score):
+            if score[0] < score[1]:
+                score.append("Home")
+                return True
+            elif score[0] > score[1]:
+                score.append("Away")
+                return True
+            # error: tie
+            else:
+                return False
+
+        awayRuns = int(game['away']['teamStats']['batting']['runs'])
+        homeRuns = int(game['home']['teamStats']['batting']['runs'])
+        awayScore = [awayRuns, homeRuns]
+        success = winOrLose(awayScore)
+
+        # no tie
+        if success:
+            SCORES[gmpk] = awayScore
 
 
     def throwsAndBats(id):
@@ -106,7 +100,7 @@ def gatherStats():
                     currentGame['gamesPlayed'] = len(playerGames)
             pThrows = p['stats']['pitching']
             if len(pThrows) > 0:
-                if pThrows['atBats'] > 0:
+                if pThrows['pitchesThrown'] > 0:
                     ALL_PITCHERS[p['person']['id']]['gmpksInOrder'].append(gmpk)
                     playerGames = ALL_PITCHERS[p['person']['id']]['gmpks']
                     currentGame = playerGames[gmpk] = p['seasonStats']['pitching']
@@ -165,7 +159,8 @@ def gatherStats():
     def collectivizeBullpen(teamName, team, gmpk):
         id = teamName + " Bullpen"
         if id not in ALL_PITCHERS:
-            ALL_PITCHERS[id] = {'currStats': [0,0,0,0,0,0,0,0,0,0,0,0], 'gmpks': {}}
+            ALL_PITCHERS[id] = {'currStats': [0,0,0,0,0,0,0,0,0,0,0,0], 'gmpksInOrder': [], 'gmpks': {}}
+        ALL_PITCHERS[id]['gmpksInOrder'].append(gmpk)
         ALL_PITCHERS[id]['gmpks'][gmpk] = {'gamesPlayed': 0, 'runs': 0, 'homeRuns': 0, 'strikeOuts': 0, 'baseOnBalls': 0, 'hits': 0, 'atBats': 0, 'obp': 0, 'era': 0, 'inningsPitched': 0, 'blownSaves': 0, 'earnedRuns': 0, 'rbi': 0}
         for player in team['pitchers']:
             # equals starter
@@ -175,6 +170,10 @@ def gatherStats():
                 updateBullpen(ALL_PITCHERS[id], player, team)
         if len(team['pitchers']) > 1:
             ALL_PITCHERS[id]['gmpks'][gmpk]['gamesPlayed'] = len(ALL_PITCHERS[id]['gmpks'])
+        else:
+            lengthOfGames = len(ALL_PITCHERS[id]['gmpksInOrder']) - 2
+            prevGame = ALL_PITCHERS[id]['gmpksInOrder'][lengthOfGames]
+            ALL_PITCHERS[id]['gmpks'][gmpk] = ALL_PITCHERS[id]['gmpks'][prevGame]
 
 
 
@@ -184,6 +183,7 @@ def gatherStats():
         while(line != ""):
             gmpk = int(line[:6])
             game = mlb.boxscore_data(gmpk)
+            addScore(game, gmpk)
             count += 1
             print(gmpk, count)
             awayTeam = game['teamInfo']['away']['teamName']
@@ -200,6 +200,7 @@ def gatherStats():
 
         addToPickle(ALL_BATTERS, 'batters.pickle')
         addToPickle(ALL_PITCHERS, 'pitchers.pickle')
+        addToPickle(SCORES, 'scores.pickle', 'team_outcomes/')
 
 """
 hierarchy:
@@ -243,13 +244,7 @@ Pitchers:
         'rbi'
 
         """
-
-# gatherStats()
-# addToPickle(ALL_BATTERS, 'batters.pickle')
-# addToPickle(ALL_PITCHERS, 'pitchers.pickle')
-
-pitchers = extractPickle('batters.pickle')
-count = 0
-print(pitchers[591741])
-
 # allGamesOnce()
+# gatherStats()
+# ALL_PITCHERS = extractPickle('pitchers.pickle')
+# print(ALL_PITCHERS[641816])
