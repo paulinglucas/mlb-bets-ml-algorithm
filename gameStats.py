@@ -204,8 +204,10 @@ def gatherGameStats(gmpk, count):
         # load in bullpen stats
         addBullpenStats(pitchingStats, prevGmpk, currTeamName)
 
+        bpName = currTeamName + " Bullpen"
+        teamWinPercent = round(float(PITCHERS[bpName]['gmpks'][prevGmpk]['wins']) / PITCHERS[bpName]['gmpks'][prevGmpk]['gamesPlayed'], 3)
         # add in list of stats received for team gamepack
-        teamStats = batStats + pitchingStats
+        teamStats = [teamWinPercent] + batStats + pitchingStats
         if away:
             stats['away'] = teamStats
             away = False

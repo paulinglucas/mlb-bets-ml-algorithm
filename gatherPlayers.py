@@ -9,7 +9,7 @@ ALL_BATTERS = {}
 ALL_PITCHERS = {}
 SCORES = {}
 
-SAVE_PATH = "pickle_files/"
+SAVE_PATH = "pickle_files_2019/"
 
 # adds dictionary to pickle file
 def addToPickle(variabl, fname, save_path=SAVE_PATH):
@@ -157,24 +157,28 @@ def gatherStats():
         currGame['rbi'] = bullpen['currStats'][11]
 
     # get stats of last game to put into current gamepack
-    def collectivizeBullpen(teamName, team, gmpk):
+    def collectivizeBullpen(teamName, team, gmpk, awayOrHome):
         id = teamName + " Bullpen"
         if id not in ALL_PITCHERS:
             ALL_PITCHERS[id] = {'currStats': [0,0,0,0,0,0,0,0,0,0,0,0], 'gmpksInOrder': [], 'gmpks': {}}
         ALL_PITCHERS[id]['gmpksInOrder'].append(gmpk)
-        ALL_PITCHERS[id]['gmpks'][gmpk] = {'gamesPlayed': 0, 'runs': 0, 'homeRuns': 0, 'strikeOuts': 0, 'baseOnBalls': 0, 'hits': 0, 'atBats': 0, 'obp': 0, 'era': 0, 'inningsPitched': 0, 'blownSaves': 0, 'earnedRuns': 0, 'rbi': 0}
+        ALL_PITCHERS[id]['gmpks'][gmpk] = {'gamesPlayed': 0, 'wins': 0, 'runs': 0, 'homeRuns': 0, 'strikeOuts': 0, 'baseOnBalls': 0, 'hits': 0, 'atBats': 0, 'obp': 0, 'era': 0, 'inningsPitched': 0, 'blownSaves': 0, 'earnedRuns': 0, 'rbi': 0}
         for player in team['pitchers']:
             # equals starter
             if player == team['pitchers'][0]:
                 continue
             else:
                 updateBullpen(ALL_PITCHERS[id], player, team)
+        lengthOfGames = len(ALL_PITCHERS[id]['gmpksInOrder']) - 2
+        prevGame = ALL_PITCHERS[id]['gmpksInOrder'][lengthOfGames]
         if len(team['pitchers']) > 1:
             ALL_PITCHERS[id]['gmpks'][gmpk]['gamesPlayed'] = len(ALL_PITCHERS[id]['gmpks'])
         else:
-            lengthOfGames = len(ALL_PITCHERS[id]['gmpksInOrder']) - 2
-            prevGame = ALL_PITCHERS[id]['gmpksInOrder'][lengthOfGames]
             ALL_PITCHERS[id]['gmpks'][gmpk] = ALL_PITCHERS[id]['gmpks'][prevGame]
+        if SCORES[gmpk][2] == awayOrHome:
+            ALL_PITCHERS[id]['gmpks'][gmpk]['wins'] = ALL_PITCHERS[id]['gmpks'][prevGame]['wins'] + 1
+        else:
+            ALL_PITCHERS[id]['gmpks'][gmpk]['wins'] = ALL_PITCHERS[id]['gmpks'][prevGame]['wins']
 
 
     # driving code
@@ -195,8 +199,8 @@ def gatherStats():
             addPlayerInfo(homePlayerList)
             addCurrentSeasonStats(awayPlayerList, gmpk)
             addCurrentSeasonStats(homePlayerList, gmpk)
-            collectivizeBullpen(awayTeam, game['away'], gmpk)
-            collectivizeBullpen(homeTeam, game['home'], gmpk)
+            collectivizeBullpen(awayTeam, game['away'], gmpk, 'Away')
+            collectivizeBullpen(homeTeam, game['home'], gmpk, 'Home')
             line = f.readline()
 
         addToPickle(ALL_BATTERS, 'batters.pickle')
