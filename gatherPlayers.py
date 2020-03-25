@@ -5,63 +5,65 @@ import pickle
 from math import floor
 import sys
 
-ALL_BATTERS = {}
-ALL_PITCHERS = {}
-SCORES = {}
-
-SAVE_PATH = "pickle_files_2019/"
-
 # adds dictionary to pickle file
-def addToPickle(variabl, fname, save_path=SAVE_PATH):
-    with open(save_path + fname, "wb") as f:
+def addToPickle(variabl, fname, year, save_path="pickle_files/"):
+    with open(save_path + str(year) + "/" + fname, "wb") as f:
         pickle.dump(variabl, f)
 
 # gets variable from pickle to be used for later
-def extractPickle(fname, save_path=SAVE_PATH):
-    with open(save_path + fname, "rb") as f:
+def extractPickle(fname, year, save_path="pickle_files/"):
+    with open(save_path + str(year) + "/" + fname, "rb") as f:
         return pickle.load(f)
 
-# removes duplicates of AllGames.txt
-def allGamesOnce():
-    with open("team_gameData/AllGames.txt", "r") as f:
-        with open("team_gameData/AllGamesOnce.txt", "w") as fw:
-            line = f.readline()
-            gmpks = []
-            while(line != ""):
-                line = line[5:]
-                if line not in gmpks:
-                    fw.write(line)
-                gmpks.append(line)
-                line = f.readline()
+class PlayerGatherer:
+    def __init__(self, year):
+        self.year = year
+        try:
+            self.ALL_BATTERS = extractPickle('batters.pickle', self.year)
+            self.ALL_PITCHERS = extractPickle('pitchers.pickle', self.year)
+            self.SCORES = extractPickle('scores.pickle', self.year)
+        except:
+            self.ALL_BATTERS = {}
+            self.ALL_PITCHERS = {}
+            self.SCORES = {}
 
-# get all stats from different players and merge them into necessary team stats
-def gatherStats():
+    def winOrLose(self, score):
+        if score[0] < score[1]:
+            score.append("Home")
+            return True
+        elif score[0] > score[1]:
+            score.append("Away")
+            return True
+        # error: tie
+        else:
+            return False
 
     # gets score of game along with winning team
-    def addScore(game, gmpk):
-
-        def winOrLose(score):
-            if score[0] < score[1]:
-                score.append("Home")
-                return True
-            elif score[0] > score[1]:
-                score.append("Away")
-                return True
-            # error: tie
-            else:
-                return False
-
+    def addScore(self, game, gmpk):
         awayRuns = int(game['away']['teamStats']['batting']['runs'])
         homeRuns = int(game['home']['teamStats']['batting']['runs'])
         awayScore = [awayRuns, homeRuns]
-        success = winOrLose(awayScore)
+        success = self.winOrLose(awayScore)
 
         # no tie
         if success:
             SCORES[gmpk] = awayScore
 
+    # removes duplicates of AllGames.txt
+    def allGamesOnce(self):
+        with open("team_gameData/AllGames.txt", "r") as f:
+            with open("team_gameData/AllGamesOnce.txt", "w") as fw:
+                line = f.readline()
+                gmpks = []
+                while(line != ""):
+                    line = line[5:]
+                    if line not in gmpks:
+                        fw.write(line)
+                    gmpks.append(line)
+                    line = f.readline()
+
     # gets dominant batting and throwing hand of each player
-    def throwsAndBats(id):
+    def throwsAndBats(self, id):
         urlBegin = "http://lookup-service-prod.mlb.com/json/named.player_info.bam?sport_code='mlb'&player_id='"
         urlEnd = "'&player_info.col_in=bats&player_info.col_in=throws"
         id = str(id)
@@ -70,7 +72,7 @@ def gatherStats():
         return (queries['throws'], queries['bats'])
 
     # adds player to databse with no game data
-    def addPlayerInfo(playerInfo):
+    def addPlayerInfo(self, playerInfo):
         for player in playerInfo:
             p = playerInfo.get(player)
             personInfo = p['person']
@@ -89,7 +91,7 @@ def gatherStats():
 
     # add current game as game played for all players who had at bats or
     # threw any pitches, place in respective data type
-    def addCurrentSeasonStats(playerList, gmpk):
+    def addCurrentSeasonStats(self, playerList, gmpk):
         for player in playerList:
             p = playerList.get(player)
             pBats = p['stats']['batting']
@@ -108,7 +110,7 @@ def gatherStats():
                     currentGame['gamesPlayed'] = len(playerGames)
 
     # 6.2 IP == 6.67 IP used for calculation purposes
-    def convertInnings(innings):
+    def convertInnings(self, innings):
         toAdd = 0
         if (innings % 1) > 0.02:
             if (innings % 1) <= 0.12:
@@ -119,7 +121,7 @@ def gatherStats():
         return innings
 
     # bullpen of every team updated along the way
-    def updateBullpen(bullpen, player, team):
+    def updateBullpen(self, bullpen, player, team):
         p = team['players'].get('ID'+str(player))
         p = p['stats']['pitching']
 
@@ -157,7 +159,7 @@ def gatherStats():
         currGame['rbi'] = bullpen['currStats'][11]
 
     # get stats of last game to put into current gamepack
-    def collectivizeBullpen(teamName, team, gmpk, awayOrHome):
+    def collectivizeBullpen(self, teamName, team, gmpk, awayOrHome):
         id = teamName + " Bullpen"
         if id not in ALL_PITCHERS:
             ALL_PITCHERS[id] = {'currStats': [0,0,0,0,0,0,0,0,0,0,0,0], 'gmpksInOrder': [], 'gmpks': {}}
@@ -180,32 +182,34 @@ def gatherStats():
         else:
             ALL_PITCHERS[id]['gmpks'][gmpk]['wins'] = ALL_PITCHERS[id]['gmpks'][prevGame]['wins']
 
+    # get all stats from different players and merge them into necessary team stats
+    def gatherStats(self):
 
-    # driving code
-    with open("team_gameData/AllGamesOnce.txt", "r") as f:
-        line = f.readline()
-        count = 0
-        while(line != ""):
-            gmpk = int(line[:6])
-            game = mlb.boxscore_data(gmpk)
-            addScore(game, gmpk)
-            count += 1
-            print(gmpk, count)
-            awayTeam = game['teamInfo']['away']['teamName']
-            homeTeam = game['teamInfo']['home']['teamName']
-            awayPlayerList = game['away']['players']
-            homePlayerList = game['home']['players']
-            addPlayerInfo(awayPlayerList)
-            addPlayerInfo(homePlayerList)
-            addCurrentSeasonStats(awayPlayerList, gmpk)
-            addCurrentSeasonStats(homePlayerList, gmpk)
-            collectivizeBullpen(awayTeam, game['away'], gmpk, 'Away')
-            collectivizeBullpen(homeTeam, game['home'], gmpk, 'Home')
+        # driving code
+        with open("team_gameData/AllGamesOnce.txt", "r") as f:
             line = f.readline()
+            count = 0
+            while(line != ""):
+                gmpk = int(line[:6])
+                game = mlb.boxscore_data(gmpk)
+                self.addScore(game, gmpk)
+                count += 1
+                print(gmpk, count)
+                awayTeam = game['teamInfo']['away']['teamName']
+                homeTeam = game['teamInfo']['home']['teamName']
+                awayPlayerList = game['away']['players']
+                homePlayerList = game['home']['players']
+                self.addPlayerInfo(awayPlayerList)
+                self.addPlayerInfo(homePlayerList)
+                self.addCurrentSeasonStats(awayPlayerList, gmpk)
+                self.addCurrentSeasonStats(homePlayerList, gmpk)
+                self.collectivizeBullpen(awayTeam, game['away'], gmpk, 'Away')
+                self.collectivizeBullpen(homeTeam, game['home'], gmpk, 'Home')
+                line = f.readline()
 
-        addToPickle(ALL_BATTERS, 'batters.pickle')
-        addToPickle(ALL_PITCHERS, 'pitchers.pickle')
-        addToPickle(SCORES, 'scores.pickle')
+            addToPickle(ALL_BATTERS, 'batters.pickle', self.year)
+            addToPickle(ALL_PITCHERS, 'pitchers.pickle', self.year)
+            addToPickle(SCORES, 'scores.pickle', self.year)
 
 """
 hierarchy:
@@ -249,3 +253,5 @@ Pitchers:
         'rbi'
 
         """
+# pl = PlayerGatherer(2019)
+# print(pl.ALL_BATTERS)

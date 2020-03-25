@@ -5,8 +5,6 @@ import statsapi as mlb
 from sys import exit
 import gatherPlayers as p
 
-ODDS = {}
-
 # Gmpk: int
 # away:, home:
 #     Date: ""
@@ -60,41 +58,43 @@ teams = ({
 
 # 15 through 22
 
-def extractAllOdds():
+class OddsExtractor:
+    def __init__(self, year):
+        self.year = year
+        try:
+            self.ODDS = p.extractPickle('all_odds.pickle', self.year)
+        except:
+            self.ODDS = {}
 
+    def getDate(self, dict):
+        date = dict['gameId'][:10]
+        dateMonth = date[6]
+        dateDay = date[8:10]
+        return dateMonth + dateDay
 
-    def matchGmpkToLine(gmpk, dict):
+    def makeNumbers(self, line):
+        for i in range(15,23):
+            if line[i] == "NL":
+                line[i] = line[i]
+            elif "." in line[i]:
+                line[i] = float(line[i])
+            else: line[i] = int(line[i])
+        return line
 
+    def convertAmericanToDecimal(self, odds):
+        for i in range(5):
+            if i % 2 != 0: continue
+            if odds[i] < 0:
+                odds[i] = 1 - (100 / odds[i])
+            else:
+                odds[i] = 1 + (odds[i] / 100)
+        return odds
 
-        def getDate(dict):
-            date = dict['gameId'][:10]
-            dateMonth = date[6]
-            dateDay = date[8:10]
-            return dateMonth + dateDay
-
-        def makeNumbers(line):
-            for i in range(15,23):
-                if line[i] == "NL":
-                    line[i] = line[i]
-                elif "." in line[i]:
-                    line[i] = float(line[i])
-                else: line[i] = int(line[i])
-            return line
-
-        def convertAmericanToDecimal(odds):
-            for i in range(8):
-                if i % 2 == 0: continue
-                if odds[i] < 0:
-                    odds[i] = 1 - (100 / odds[i])
-                else:
-                    odds[i] = 1 + (odds[i] / 100)
-            return odds
-
-
-        oddsDate = getDate(dict)
+    def matchGmpkToLine(self, gmpk, dict):
+        oddsDate = self.getDate(dict)
         gmpkOdds = {'away': [], 'home': []}
 
-        with open("references/mlb_odds_2019.csv", "r") as f:
+        with open("references/" + str(self.year) + "/mlb_odds_" + str(self.year) + ".csv", "r") as f:
             f.readline()
             line = f.readline()
             while line != "":
@@ -114,30 +114,39 @@ def extractAllOdds():
                     continue
 
                 homeLine = f.readline().strip().split(",")
-                line = makeNumbers(line)
-                homeLine = makeNumbers(homeLine)
-                line = convertAmericanToDecimal(line[15:23])
-                homeLine = convertAmericanToDecimal(homeLine[15:23])
+                line = self.makeNumbers(line)
+                homeLine = self.makeNumbers(homeLine)
+                line = line[16:23]
+                del line[3]
+                del line[3]
+                line = self.convertAmericanToDecimal(line)
+                homeLine = homeLine[16:23]
+                del homeLine[3]
+                del homeLine[3]
+                homeLine = self.convertAmericanToDecimal(homeLine)
 
                 gmpkOdds['away'] = line
                 gmpkOdds['home'] = homeLine
 
-                ODDS[gmpk] = gmpkOdds
+                self.ODDS[gmpk] = gmpkOdds
                 return True
             return False
 
-
-    with open("team_gameData/AllGamesOnce.txt", "r") as f:
-        line = f.readline()
-        count = 0
-        while line != "":
-            count += 1
-            gmpk = int(line[:6])
-            print(gmpk, count)
-            dict = mlb.boxscore_data(gmpk)
-            success = matchGmpkToLine(gmpk, dict)
-            if not success:
-                ODDS[gmpk] = "No odds"
-                print("No odds")
+    def extractAllOdds(self):
+        with open("team_gameData/" + str(self.year) + "/AllGamesOnce.txt", "r") as f:
             line = f.readline()
-    p.addToPickle(ODDS, "all_odds.pickle")
+            count = 0
+            while line != "":
+                count += 1
+                gmpk = int(line[:6])
+                print(gmpk, count)
+                dict = mlb.boxscore_data(gmpk)
+                success = self.matchGmpkToLine(gmpk, dict)
+                if not success:
+                    self.ODDS[gmpk] = "No odds"
+                    print("No odds")
+                line = f.readline()
+        p.addToPickle(self.ODDS, "all_odds.pickle", self.year)
+
+e = OddsExtractor(2019)
+print(e.ODDS)

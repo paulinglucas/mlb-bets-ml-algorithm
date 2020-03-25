@@ -16,7 +16,7 @@ def main():
     # puts all players into dictionary pickle files,
     # separated by batting and pitching stats
     players.allGamesOnce()
-    players.gatherStats()
+    players.gatherStats(2019)
 
     # creates team stats leading up to every mlb game ... 2426 games in total
     stat.addInAllStats()
