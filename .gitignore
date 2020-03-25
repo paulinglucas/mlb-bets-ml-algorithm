@@ -129,13 +129,9 @@ dmypy.json
 .pyre/
 
 # messed up files
-stats.py
-player.py
-mlb_odds_2019.csv
 references
-AllGames.txt
 team_gameData
 pickle_files
 debuggingTeamStats.py
-tiff2.py
 os_prep.py
+odds_loss.hdf5
