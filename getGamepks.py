@@ -83,7 +83,7 @@ class GamePackGetter:
     def __init__(self, year):
         self.year = year
 
-    # write boxscore of every game of 2019
+    # write boxscore of every game of 2019, used for debugging
     def writeGamepks(self):
         gamepkDivider = "*"*60
         fo = open("references/output.txt", "w")
@@ -97,145 +97,42 @@ class GamePackGetter:
                 fo.write("No data for gamepk #\n")
                 fo.write(gamepkDivider + "\n")
 
+    def returnSznGamepks(self):
+        gmpks = []
+        games = []
+        startDate = '03/20/' + str(self.year)
+        endDate = '10/08/' + str(self.year)
+        dict = mlb.schedule(date=None, start_date=startDate, end_date=endDate, team="", opponent="", sportId=1, game_id=None)
+        for gm in dict:
+            # we only want regular season games, or games not postponed/cancelled
+            if gm['game_type'] != 'R' or (gm['status'] == "Postponed" or gm['status'] == "Cancelled"):
+                continue
+            else:
+                date_id = gm['game_date'].split("-")
+                date = Date(int(date_id[1]), int(date_id[2]), int(date_id[0]))
+                lst = [gm['game_id'], teams_id[gm['away_id']], teams_id[gm['home_id']], date]
+                if lst[0] not in gmpks:
+                    gmpks.append(lst[0])
+                    games.append(lst)
+        return games
+
+    def writeTeamGmpk(self, tm, gmpk, awayOrHome, date):
+        with open(SAVE_PATH + str(self.year) + "/" + tm.replace(" ", "_") + ".txt", "a") as f:
+            f.write(awayOrHome + " " + str(gmpk) + ": " + str(date) + "\n")
+            return
+
     # generate list to be sorted later for every team
-    def generateUnsortedLists(self):
+    def generateLists(self):
         for tm in teams_list:
-            fg = open(SAVE_PATH + str(self.year) + "/" + tm.replace(" ", "_") + "_Unsorted.txt", "w")
+            fg = open(SAVE_PATH + str(self.year) + "/" + tm.replace(" ", "_") + ".txt", "w")
             fg.write("")
         fg.close()
+        open(SAVE_PATH + str(self.year) + "/" + "AllGamesOnce.txt", "w").close()
 
-        fh = open("references/output.txt", "r")
-        for gm in range(BEG_2019_SZN_GAMEPK, END_2019_SZN_GAMEPK+1):
-            line = fh.readline()
-            gamepk = line[8:14]
-            line = fh.readline()
-            if line[0:2] == "No":
-                fh.readline()
-            else:
-                line = fh.readline()
-                date = ""
-                count = 0
-                for tm in teams_list:
-                    if (tm in line[0:14]):
-                        ft = open(SAVE_PATH + tm.replace(" ", "_") + "_Unsorted.txt", "a")
-                        ft.write("Away " + gamepk + ": ")
-                        if(count==0):
-                            while fh.readline()[0:5] != "Venue":
-                                continue
-                            date = fh.readline().strip()
-                            count += 1
-                        ft.write(date + "\n")
-                        ft.close()
-                    elif (tm in line):
-                        ft = open(SAVE_PATH + tm.replace(" ", "_") + "_Unsorted.txt", "a")
-                        ft.write("Home " + gamepk + ": ")
-                        if(count==0):
-                            while fh.readline()[0:5] != "Venue":
-                                continue
-                            date = fh.readline().strip()
-                            count += 1
-                        ft.write(date + "\n")
-                        ft.close()
-                fh.readline()
-                fh.readline()
-        fh.close()
-
-    def countLines(self, tm):
-        fa = open(SAVE_PATH + str(self.year) + "/" + tm.replace(" ", "_") + "_Unsorted.txt", "r")
-        lineNum = 0
-        while fa.readline():
-            lineNum += 1
-        fa.close()
-        return lineNum
-
-    def getLines(self, tm):
-        fc = open(SAVE_PATH + str(self.year) + "/" + tm.replace(" ", "_") + "_Unsorted.txt", "r")
-        lines = fc.readlines()
-        fc.close()
-        return lines
-
-    def deleteLine(self, tm, lines, minLine):
-        fd = open(SAVE_PATH + str(self.year) + "/" + tm.replace(" ", "_") + "_Unsorted.txt", "w")
-        for line in lines:
-            if line != minLine:
-                fd.write(line)
-        fd.close()
-
-    # sort unsorted list
-    def sortTeamGames(self):
-        for tm in teams_list:
-            fo = open(SAVE_PATH + str(self.year) + "/" + tm.replace(" ", "_") + ".txt", "w")
-            lineNum = self.countLines(tm)
-            while lineNum > 0:
-                fb = open(SAVE_PATH + str(self.year) + "/" + tm.replace(" ", "_") + "_Unsorted.txt", "r")
-                minLine = fb.readline()
-                min = minLine[13:]
-                min = min.strip().replace(",", "").replace(":", "").split(" ")
-                if min == ['']: continue
-                else:
-                    min = Date(min[0], int(min[1]), int(min[2]))
-                    for line in fb:
-                        date = line[13:]
-                        date = date.strip().replace(",", "").replace(":", "").split(" ")
-                        date = Date(date[0], int(date[1]), int(date[2]))
-                        if (date < min):
-                            min = date
-                            minLine = line
-                    # if min > Date("March", 27, 2019) and min < Date("September", 30, 2019):
-                    fo.write(minLine)
-                    fb.close()
-                    lines = self.getLines(tm)
-                    self.deleteLine(tm, lines, minLine)
-                    lineNum -= 1
-            fo.close()
-
-    # only using sorted
-    def deleteUnsortedFiles(self):
-        for tm in teams_list:
-            os.remove(SAVE_PATH + str(self.year) + "/" + tm.replace(" ", "_") + "_Unsorted.txt")
-
-    def insertFileLine(self, fname, index, line):
-        f = open(fname, "r")
-        contents = f.readlines()
-        f.close()
-
-        contents.insert(index, line)
-
-        f = open(fname, "w")
-        f.writelines(contents)
-        f.close()
-
-    # add in all gamepacks into one file
-    def createGamesInOrder(self):
-        fo = open(SAVE_PATH + str(self.year) + "/AllGames.txt", "w")
-        fr = open(SAVE_PATH + str(self.year) + "/Angels.txt", "r")
-        contents = fr.readlines()
-        fo.writelines(contents)
-        fr.close()
-        fo.close()
-        for tm in teams_list[1:]:
-            ft = open(SAVE_PATH + str(self.year) + "/" + tm.replace(" ", "_") + ".txt", "r")
-            line = ft.readline()
-            while(line != ""):
-                lineNum = 0
-                date = line[13:].replace(",", "").split()
-                date = Date(date[0], int(date[1]), int(date[2]))
-                fp = open(SAVE_PATH + str(self.year) + "/AllGames.txt", "r")
-                otherLine = fp.readline()
-                inserted = False
-                while(otherLine != ""):
-                    date2 = otherLine[13:].replace(",", "").split()
-                    date2 = Date(date2[0], int(date2[1]), int(date2[2]))
-                    if date < date2 or date == date2:
-                        fp.close()
-                        self.insertFileLine(SAVE_PATH + str(self.year) + "/AllGames.txt", lineNum, line)
-                        inserted = True
-                        break
-                    lineNum += 1
-                    otherLine = fp.readline()
-                if not inserted:
-                    fp.close()
-                    self.insertFileLine(SAVE_PATH + str(self.year) + "/AllGames.txt", lineNum, line)
-                line = ft.readline()
-            ft.close()
-        fp.close()
+        gmpks = self.returnSznGamepks()
+        with open(SAVE_PATH + str(self.year) + "/" + "AllGamesOnce.txt", "a") as f:
+            for gm in gmpks:
+                f.write(str(gm[0]) + ": " + str(gm[3]) + "\n")
+                self.writeTeamGmpk(gm[1], gm[0], "Away", gm[3])
+                self.writeTeamGmpk(gm[2], gm[0], "Home", gm[3])
+            return

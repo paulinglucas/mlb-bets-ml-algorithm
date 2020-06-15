@@ -1,8 +1,6 @@
 import gatherPlayers as p
 import gameStats as gm
 
-lst = []
-outputLst = []
 # 40 x 2425
 
 class ListCreator:
@@ -10,12 +8,13 @@ class ListCreator:
         self.year = year
         self.DATA = p.extractPickle("all_games.pickle", self.year)
         self.SCORES = p.extractPickle("scores.pickle", self.year)
-        self.SPREADS = p.extractPickle("spreads.pickle", self.year)
         self.ODDS = p.extractPickle("all_odds.pickle", self.year)
-        self.LENGTH_OF_LIST = 40
+        self.LENGTH_OF_LIST = 58
+        self.LISTT = []
 
     # remember to add the stats into the gamepacks BEFOREHAND
     def addToList(self):
+        lst = []
         # game stats
         with open("team_gameData/" + str(self.year) + "/AllGamesOnce.txt", "r") as f:
             line = f.readline()
@@ -23,13 +22,14 @@ class ListCreator:
             while line != "":
                 count += 1
                 gmpk = int(line[:6])
-                print(gmpk, count)
                 listToUse = self.DATA['gmpks'][gmpk]['away'] + self.DATA['gmpks'][gmpk]['home']
                 lst.append(listToUse)
                 line = f.readline()
         # # Tigers/White Sox game with zero data
         # del lst[1910]
-        p.addToPickle(lst, "twoD_list.pickle", self.year)
+        self.LISTT = lst
+        # p.addToPickle(lst, "twoD_list.pickle", self.year)
+        p.addToPickle(self.LISTT, "twoD_list.pickle", self.year)
 
     # adds output vectors to odds dictionary to be used as labels for tensorflow
     def checkOdds(self):
@@ -62,18 +62,20 @@ class ListCreator:
             return output_vector
 
         with open("team_gameData/" + str(self.year) + "/AllGamesOnce.txt", "r") as f:
+            outputLst = []
             output_vector = [0,0,0,0,0,0]
             line = f.readline()
             count = 0
             while line != "":
                 output_vector = [0,0,0,0,0,0]
-                count += 1
                 gmpk = int(line[:6])
 
                 if self.ODDS[gmpk] == "No odds":
                     line = f.readline()
+                    del self.LISTT[count]
                     continue
 
+                count += 1
                 score = self.DATA['gmpks'][gmpk]['outcome']
                 awayGameOdds = self.ODDS[gmpk]['away']
                 oddsToCheck = awayGameOdds
@@ -95,6 +97,7 @@ class ListCreator:
                     output_vector[i] = float(output_vector[i])
                 outputLst.append(output_vector)
                 line = f.readline()
+        p.addToPickle(self.LISTT, "twoD_list.pickle", self.year)
         p.addToPickle(outputLst, "outcome_vectors.pickle", self.year)
 
     # gets binary spread output of every game
@@ -103,10 +106,13 @@ class ListCreator:
         newLst = []
         lst = p.extractPickle("outcome_vectors.pickle", self.year)
         for i in range(len(lst)):
+            odds = [lst[i][6]] + [lst[i][7]]
             if lst[i][0] == 1:
-                newLst.append([1,0])
+                new = [1,0] + odds
+                newLst.append(new)
             elif lst[i][1] == 1:
-                newLst.append([0,1])
+                new = [0,1] + odds
+                newLst.append(new)
         p.addToPickle(newLst, "spreads.pickle", self.year)
 
     # used as reference, puts all team stats gathered into convenient CSV
@@ -124,7 +130,7 @@ class ListCreator:
                 f.write(line)
                 f.write("\n")
 
-l = ListCreator(2019)
-l.checkOdds()
-l.spread()
+# l = ListCreator(2019)
+# l.checkOdds()
+# l.spread()
 # DATA = p.extractPickle("all_games.pickle")

@@ -2,6 +2,7 @@ import gatherPlayers as p
 import getGamepks as gm
 import statsapi as mlb
 from enum import IntEnum
+from last10 import Last10
 
 
 SAVE_PATH = "team_gameData/"
@@ -29,27 +30,15 @@ class PitcherStats(IntEnum):
     bWHIP = 7   # Bullpen WHIP
     bHRP9 = 8   # Bullpen Home Runs per 9
     bSOP9 = 9   # Bullpen Strikeouts per 9
-    BSPG = 10    # Blown Saves per Game
+    BSPG = 10   # Blown Saves per Game
+    RYAN = 11   # ryanicity of pitchers last game
+    ERR = 12    # Earned Run Ratio of pitchers
 
 # Other Stats to keep in mind:
 #     Home team name
 #     Away team name
 #     Starter Throwing Hand
 #     Batting lineup %LHB
-
-
-inputs_list = ([
-"Team BA",
-"Team OBP",
-"Team SLG",
-"Team RPG",
-"Team HRPG",
-"Starter ERA",
-"Starter WHIP",
-"Bullpen ERA",
-"Starter HRPG",
-"Bullpen HRPG"
-])
 
 class GameStats:
     def __init__(self, year):
@@ -91,28 +80,28 @@ class GameStats:
             return gmpk
         return p[idx-1]
 
+    # returns stat of lineup
+    def averageLineupStats(self, stat, gmpk, lineup, perGame=False):
+        statSum = 0
+        count = 0
+        for batter in lineup:
+            try:
+                batterGmpk = self.getPreviousGame('Batter', batter, gmpk)
+                if perGame:
+                    statForGame = float(self.BATTERS[batter]['gmpks'][batterGmpk][stat]) / self.BATTERS[batter]['gmpks'][batterGmpk]['gamesPlayed']
+                    statSum += statForGame
+                else:
+                    statSum += float(self.BATTERS[batter]['gmpks'][batterGmpk][stat])
+                count += 1
+            except:
+                pass
+        if perGame:
+            statAvg = round(statSum, 3)
+        else: statAvg = round(statSum / count, 3)
+        return statAvg
+
     # batter stats going in
     def addBatterStats(self, batStats, gmpk, lineup):
-
-        # returns stat of lineup
-        def averageLineupStats(self, stat, gmpk, lineup, perGame=False):
-            statSum = 0
-            count = 0
-            for batter in lineup:
-                try:
-                    batterGmpk = self.getPreviousGame('Batter', batter, gmpk)
-                    if perGame:
-                        statForGame = float(self.BATTERS[batter]['gmpks'][batterGmpk][stat]) / self.BATTERS[batter]['gmpks'][batterGmpk]['gamesPlayed']
-                        statSum += statForGame
-                    else:
-                        statSum += float(self.BATTERS[batter]['gmpks'][batterGmpk][stat])
-                    count += 1
-                except:
-                    pass
-            if perGame:
-                statAvg = round(statSum, 3)
-            else: statAvg = round(statSum / count, 3)
-            return statAvg
 
         # add in stats to batter stats
         batStats[BatterStats.BA] = self.averageLineupStats('avg', gmpk, lineup)
@@ -144,42 +133,54 @@ class GameStats:
         pitchingStats[PitcherStats.ERA] = float(self.PITCHERS[pitcher]['gmpks'][gmpk]['era'])
         pitchingStats[PitcherStats.WHIP] = \
             round((float(self.PITCHERS[pitcher]['gmpks'][gmpk]['hits']) + \
-            float(self.PITCHERS[pitcher]['gmpks'][gmpk]['baseOnBalls'])) / \
-            float(self.PITCHERS[pitcher]['gmpks'][gmpk]['inningsPitched']), 3)
+                   float(self.PITCHERS[pitcher]['gmpks'][gmpk]['baseOnBalls'])) / \
+                   float(self.PITCHERS[pitcher]['gmpks'][gmpk]['inningsPitched']), 3)
         pitchingStats[PitcherStats.HRP9] = round(float(self.PITCHERS[pitcher]['gmpks'][gmpk]['homeRuns']) * 9 \
-            / float(self.PITCHERS[pitcher]['gmpks'][gmpk]['inningsPitched']), 3)
+                                               / float(self.PITCHERS[pitcher]['gmpks'][gmpk]['inningsPitched']), 3)
         pitchingStats[PitcherStats.SOP9] = round(float(self.PITCHERS[pitcher]['gmpks'][gmpk]['strikeOuts']) * 9 \
-            / float(self.PITCHERS[pitcher]['gmpks'][gmpk]['inningsPitched']), 3)
+                                               / float(self.PITCHERS[pitcher]['gmpks'][gmpk]['inningsPitched']), 3)
         pitchingStats[PitcherStats.IPG] = round(float(self.PITCHERS[pitcher]['gmpks'][gmpk]['inningsPitched']) / \
-            float(self.PITCHERS[pitcher]['gmpks'][gmpk]['gamesPlayed']), 3)
+                                                float(self.PITCHERS[pitcher]['gmpks'][gmpk]['gamesPlayed']), 3)
+        pitchingStats[PitcherStats.RYAN] = self.PITCHERS[pitcher]['gmpks'][gmpk]['ryanicity']
 
     # bullpen stats going in too
     def addBullpenStats(self, pitchingStats, gmpk, tm):
         bpName = tm + " Bullpen"
         pitchingStats[PitcherStats.bERA] = float(self.PITCHERS[bpName]['gmpks'][gmpk]['era'])
-        pitchingStats[PitcherStats.bWHIP] = \
-            round((float(self.PITCHERS[bpName]['gmpks'][gmpk]['hits']) + \
-            float(self.PITCHERS[bpName]['gmpks'][gmpk]['baseOnBalls'])) / \
-            float(self.PITCHERS[bpName]['gmpks'][gmpk]['inningsPitched']), 3)
-        pitchingStats[PitcherStats.bHRP9] = round(float(self.PITCHERS[bpName]['gmpks'][gmpk]['homeRuns']) * 9 \
-            / float(self.PITCHERS[bpName]['gmpks'][gmpk]['inningsPitched']), 3)
-        pitchingStats[PitcherStats.bSOP9] = round(float(self.PITCHERS[bpName]['gmpks'][gmpk]['strikeOuts']) * 9 \
-            / float(self.PITCHERS[bpName]['gmpks'][gmpk]['inningsPitched']), 3)
-        pitchingStats[PitcherStats.BSPG] = round(float(self.PITCHERS[bpName]['gmpks'][gmpk]['blownSaves']) / \
-            float(self.PITCHERS[bpName]['gmpks'][gmpk]['gamesPlayed']), 3)
+        if self.PITCHERS[bpName]['gmpks'][gmpk]['inningsPitched'] == 0:
+            pitchingStats[PitcherStats.bWHIP] = 0.0
+            pitchingStats[PitcherStats.bHRP9] = 0.0
+            pitchingStats[PitcherStats.bSOP9] = 0.0
+            pitchingStats[PitcherStats.BSPG] = 0.0
+        else:
+            pitchingStats[PitcherStats.bWHIP] = \
+                round((float(self.PITCHERS[bpName]['gmpks'][gmpk]['hits']) + \
+                       float(self.PITCHERS[bpName]['gmpks'][gmpk]['baseOnBalls'])) / \
+                       float(self.PITCHERS[bpName]['gmpks'][gmpk]['inningsPitched']), 3)
+            pitchingStats[PitcherStats.bHRP9] = round(float(self.PITCHERS[bpName]['gmpks'][gmpk]['homeRuns']) * 9 \
+                                                    / float(self.PITCHERS[bpName]['gmpks'][gmpk]['inningsPitched']), 3)
+            pitchingStats[PitcherStats.bSOP9] = round(float(self.PITCHERS[bpName]['gmpks'][gmpk]['strikeOuts']) * 9 \
+                                                    / float(self.PITCHERS[bpName]['gmpks'][gmpk]['inningsPitched']), 3)
+            pitchingStats[PitcherStats.BSPG] = round(float(self.PITCHERS[bpName]['gmpks'][gmpk]['blownSaves']) / \
+                                                     float(self.PITCHERS[bpName]['gmpks'][gmpk]['gamesPlayed']), 3)
+
+    def earnedRunRatio(self, pitchingStats, pitcherGmpk, bullpenGmpk, tm, pitcher):
+        bpName = tm + " Bullpen"
+        try:
+            startERR = round(float(self.PITCHERS[pitcher]['gmpks'][pitcherGmpk]['earnedRuns']) /
+                                   self.PITCHERS[pitcher]['gmpks'][pitcherGmpk]['runs'], 3)
+            bpERR = round(float(self.PITCHERS[bpName]['gmpks'][bullpenGmpk]['earnedRuns']) /
+                                self.PITCHERS[bpName]['gmpks'][bullpenGmpk]['runs'], 3)
+            ratio = (startERR * pitchingStats[PitcherStats.IPG] + bpERR * (9 - pitchingStats[PitcherStats.IPG])) / 9
+            pitchingStats[PitcherStats.ERR] = round(ratio, 3)
+        except ZeroDivisionError:
+            pitchingStats[PitcherStats.ERR] = 1.0
 
     # get game stats of every game of 2019
-    def gatherGameStats(self, gmpk, count):
+    def gatherGameStats(self, gmpk):
         stats = {"away": [], "home": [], "outcome": []}
         self.DATA['gmpks'][gmpk] = stats
-
-        print(gmpk, count)
         game = mlb.boxscore_data(gmpk)
-
-        # check for empty game pack
-        if game['away']['teamStats']['batting']['runs'] == game['home']['teamStats']['batting']['runs']:
-            print("False game")
-            return None
 
         teams = ['away', 'home']
         away = True
@@ -204,16 +205,23 @@ class GameStats:
             self.addBatterStats(batStats, gmpk, lineup)
 
             # load in pitcher stats
-            pitchingStats = [0,0,0,0,0,0,0,0,0,0,0]
+            pitchingStats = [0,0,0,0,0,0,0,0,0,0,0,0,0]
             self.addPitcherStats(pitchingStats, pitcherGmpk, pitcher)
 
-            # load in bullpen stats
+            # load in bullpen stats and ERR
             self.addBullpenStats(pitchingStats, prevGmpk, currTeamName)
+            self.earnedRunRatio(pitchingStats, pitcherGmpk, prevGmpk, currTeamName, pitcher)
 
-            bpName = currTeamName + " Bullpen"
-            teamWinPercent = round(float(self.PITCHERS[bpName]['gmpks'][prevGmpk]['wins']) / self.PITCHERS[bpName]['gmpks'][prevGmpk]['gamesPlayed'], 3)
+            # get last 10 batting stats
+            lTen = Last10(self.year)
+            last10stats = lTen.gatherGameStats(prevGmpk, lineup)
+
+            teamWinPercent = self.BATTERS[currTeamName]['gmpks'][prevGmpk]['winPercent']
+            teamWinPercentLast10 = self.BATTERS[currTeamName]['gmpks'][prevGmpk]['winsLast10']
+            pExpLast10 = self.BATTERS[currTeamName]['gmpks'][prevGmpk]['expectation']
+
             # add in list of stats received for team gamepack
-            teamStats = [teamWinPercent] + batStats + pitchingStats
+            teamStats = [teamWinPercent, teamWinPercentLast10, pExpLast10] + batStats + last10stats + pitchingStats
             if away:
                 stats['away'] = teamStats
                 away = False
@@ -227,12 +235,14 @@ class GameStats:
     def addInAllStats(self):
         with open("team_gameData/" + str(self.year) + "/AllGamesOnce.txt", "r") as f:
             line = f.readline()
-            count = 1
+            gamesRemaining = 2430 # games in MLB season
             while line != "":
                 gmpk = int(line[:6])
-                gatherGameStats(gmpk, count)
+                gamesRemaining -= 1
+                if (gamesRemaining % 50 == 0):
+                    print("GAMES REMAINING: " + str(gamesRemaining))
+                self.gatherGameStats(gmpk)
                 line = f.readline()
-                count += 1
             p.addToPickle(self.DATA, "all_games.pickle", self.year)
 
 

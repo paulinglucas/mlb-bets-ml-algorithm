@@ -1,16 +1,16 @@
 months = ({
-    "January": 1,
-    "February": 2,
-    "March": 3,
-    "April": 4,
-    "May": 5,
-    "June": 6,
-    "July": 7,
-    "August": 8,
-    "September": 9,
-    "October": 10,
-    "November": 11,
-    "December": 12
+    1: "January",
+    1: "February",
+    3: "March",
+    4: "April",
+    5: "May",
+    6: "June",
+    7: "July",
+    8: "August",
+    9: "September",
+    10: "October",
+    11: "November",
+    12: "December"
     })
 
 class Date:
@@ -19,29 +19,5 @@ class Date:
         self.day = day
         self.year = year
 
-    def __lt__(self, other):
-        if self.year < other.year:
-            return True
-        elif self.year == other.year:
-            if self.month < other.month:
-                return True
-            elif self.month == other.month:
-                if self.day < other.day:
-                    return True
-        else: return False
-
-    def __gt__(self, other):
-        if self.year > other.year:
-            return True
-        elif self.year == other.year:
-            if self.month > other.month:
-                return True
-            elif self.month == other.month:
-                if self.day > other.day:
-                    return True
-        else: return False
-
-    def __eq__(self, other):
-        if self.year == other.year and self.month == other.month and self.day == other.day:
-            return True
-        else: return False
+    def __str__(self):
+        return self.month + " " + str(self.day) + ", " + str(self.year)

@@ -135,3 +135,8 @@ pickle_files
 debuggingTeamStats.py
 os_prep.py
 odds_loss.hdf5
+debug_script.py
+debug/
+todo.txt
+tiff.py
+models

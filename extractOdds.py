@@ -50,7 +50,8 @@ teams = ({
 "CWS": "White Sox",
 "MIA": "Marlins",
 "NYY": "Yankees",
-"MIL": "Brewers"
+"MIL": "Brewers",
+"LOS": "Dodgers"
 })
 
 # No gmpk 567304
@@ -61,10 +62,7 @@ teams = ({
 class OddsExtractor:
     def __init__(self, year):
         self.year = year
-        try:
-            self.ODDS = p.extractPickle('all_odds.pickle', self.year)
-        except:
-            self.ODDS = {}
+        self.ODDS = {}
 
     def getDate(self, dict):
         date = dict['gameId'][:10]
@@ -135,11 +133,12 @@ class OddsExtractor:
     def extractAllOdds(self):
         with open("team_gameData/" + str(self.year) + "/AllGamesOnce.txt", "r") as f:
             line = f.readline()
-            count = 0
+            gamesRemaining = 2430
             while line != "":
-                count += 1
+                gamesRemaining -= 1
                 gmpk = int(line[:6])
-                print(gmpk, count)
+                if (gamesRemaining % 50 == 0):
+                    print("GAMES REMAINING: " + str(gamesRemaining))
                 dict = mlb.boxscore_data(gmpk)
                 success = self.matchGmpkToLine(gmpk, dict)
                 if not success:
@@ -147,6 +146,3 @@ class OddsExtractor:
                     print("No odds")
                 line = f.readline()
         p.addToPickle(self.ODDS, "all_odds.pickle", self.year)
-
-e = OddsExtractor(2019)
-print(e.ODDS)
