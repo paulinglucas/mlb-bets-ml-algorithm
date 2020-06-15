@@ -9,15 +9,15 @@ from createUsableList import ListCreator
 
 #missing year 2016
 BEG_YEAR = 2014
-END_YEAR = 2014
+END_YEAR = 2019
 
 def main():
     print()
     print("BEGINNING THE EXTRACTION OF PLAYER DATA BETWEEN YEARS " + str(BEG_YEAR) + " AND " + str(END_YEAR))
     for yr in range(BEG_YEAR, END_YEAR+1):
         print()
-        # if yr == 2016:
-        #     continue
+        if yr == 2016:
+            continue
         print("YEAR: " + str(yr))
         # print("GENERATING GAMEPACK FILES FOR YEAR " + str(yr))
         # g = GamePackGetter(yr)

@@ -10,7 +10,7 @@ This repo is designed for one to be able to gather all of the necessary statisti
 - MLB Data API used to gather player names and hand-dominance
 - Python wrapper of MLB API created by Todd Roberts to gather player statistics; link: https://github.com/toddrob99/MLB-StatsAPI/wiki
 
-#### To run the program
+## To run the program
 
 1. Run the main.py program to gather statistics necessary
 
