@@ -1,24 +1,26 @@
-import getGamepks as gm
+import getGamepks as get
 import gatherPlayers as players
 import gameStats as stat
 import extractOdds as odds
 import createUsableList as lst
 import statsapi as mlb
+from datetime import date as d
+from datetime import timedelta
 
 YEAR = 2020
 
 def isGameInFile(tm, gmpk):
-    with open("team_gameData/2020/" + gm.teams_id[tm].replace(" ", "_") + ".txt", "rb") as fh:
+    with open("team_gameData/2020/" + get.teams_id[tm].replace(" ", "_") + ".txt", "r") as fh:
         for line in fh:
-            pass
-        last = line
-        if gmpk == last[5:11]:
-            return True
-        else: return False
+            if str(gmpk) == line[5:11]:
+                return True
+        return False
 
 def invalidGame(gmpk, year):
     dict = mlb.schedule(game_id=gmpk)
     for gm in dict:
+        if 'Scheduled' in gm['status']:
+            return True
         if gm['game_type'] != 'R' or (gm['status'] == "Postponed" or gm['status'] == "Cancelled"):
             return True
         if int(gm['game_date'][:4]) < year:
@@ -29,33 +31,40 @@ def invalidGame(gmpk, year):
 
 def setUpGamepks(year):
     gmpks = {}
+    yesterday = d.today() - timedelta(days=1)
+    dt = yesterday.strftime('%Y-%m-%d')
+    gm = mlb.schedule(date=dt)
 
-    for tm in gm.teams_id:
-        gmpk = mlb.last_game(tm)
+    for g in gm:
+        gmpk = g['game_id']
+        tms = []
+        tms.append(g['home_id'])
+        tms.append(g['away_id'])
 
-        if isGameInFile(tm, gmpk) or invalidGame(gmpk, year):
-            continue
+        for tm in tms:
+            if isGameInFile(tm, gmpk) or invalidGame(gmpk, year):
+                continue
 
-        game = mlb.boxscore_data(gmpk)
-        with open("team_gameData/2020/" + gm.teams_id[tm].replace(" ", "_") + ".txt", "a") as f:
-            awayOrHome = 'Home'
-            if game['teamInfo']['away']['teamName'] == gm.teams_id[tm]:
-                awayOrHome = 'Away'
-            date = ""
-            for label in game['gameBoxInfo']:
-                if len(label) == 1:
-                    date = label['label']
-            f.write(awayOrHome + " " + str(gmpk) + ": " + date + "\n")
+            game = mlb.boxscore_data(gmpk)
+            with open("team_gameData/2020/" + get.teams_id[tm].replace(" ", "_") + ".txt", "a") as f:
+                awayOrHome = 'Home'
+                if game['teamInfo']['away']['teamName'] == get.teams_id[tm]:
+                    awayOrHome = 'Away'
+                date = ""
+                for label in game['gameBoxInfo']:
+                    if len(label) == 1:
+                        date = label['label']
+                f.write(awayOrHome + " " + str(gmpk) + ": " + date + "\n")
 
-            # in case a different team already had this specific gamepack
-            if gmpk not in gmpks:
-                gmpks[gmpk] = date
-            else: continue
+                # in case a different team already had this specific gamepack
+                if gmpk not in gmpks:
+                    gmpks[gmpk] = date
+                else: continue
 
-        # write to AllGamesOnce
-        with open("team_gameData/2020/AllGamesOnce.txt", "a") as f:
-            for gmpk in gmpks:
-                f.write(str(gmpk) + ": " + gmpks[gmpk] + "\n")
+    # write to AllGamesOnce
+    with open("team_gameData/2020/AllGamesOnce.txt", "a") as f:
+        for gmpk in gmpks:
+            f.write(str(gmpk) + ": " + gmpks[gmpk] + "\n")
 
 
 def main():
@@ -64,10 +73,10 @@ def main():
     # puts all players into dictionary pickle files,
     # separated by batting and pitching stats
     pg = players.PlayerGatherer(YEAR)
-    pg.gatherStats(YEAR)
+    pg.gatherStats()
 
     # creates team stats leading up to every mlb game ... 2426 games in total
-    stats = GameStats(YEAR)
+    stats = stat.GameStats(YEAR)
     stats.addInAllStats()
 
     # get odds of every game, one seemed to not have any ... 2425 game odds
@@ -75,7 +84,7 @@ def main():
     # o.extractAllOdds()
 
     # create lists to load into machine learning algorithm
-    l = ListCreator(YEAR)
+    l = lst.ListCreator(YEAR)
     l.addToList()
 
 if __name__ == "__main__":

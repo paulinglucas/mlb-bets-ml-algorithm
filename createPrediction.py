@@ -24,7 +24,10 @@ class Predictor:
 
     def lookup(self, name, tm):
         name = name.split()
-        name = name[1] + ", " + name[0]
+        if len(name) == 3:
+            name = name[1] + " " + name[2] + ", " + name[0]
+        else:
+            name = name[1] + ", " + name[0]
         player = mlb.lookup_player(name, season=self.year)
         if player == []:
             return None
@@ -77,94 +80,96 @@ class Predictor:
         lhpPercent = round(lhpSum / count, 2)
         batStats[BatterStats.LHP] = lhpPercent
 
+    def getLineups(self, g):
+        data = mlb.boxscore_data(g['game_id'])
+        try:
+            lineups = {'home': teams_id[g['home_id']],
+                               'away': teams_id[g['away_id']],
+                               'hLineup': data['home']['battingOrder'],
+                               'aLineup': data['away']['battingOrder'],
+                               'hStarter': data['home']['pitchers'][0],
+                               'aStarter': data['away']['pitchers'][0]
+                              }
+        except IndexError:
+            print("Lineups for {} @ {} not yet created.\n".format(teams_id[g['away_id']], teams_id[g['home_id']]))
+            return -1
+        return lineups
+
+    def returnTeamStats(self, tm, pitcher, lineup):
+        # getGamepk for lineup and bullpen
+        prevGmpk = self.BATTERS[tm]['gmpksInOrder'][-1]
+
+        # check if pitcher has pitched in previous game
+        pitcherGmpk = self.PITCHERS[pitcher]['gmpksInOrder'][-1]
+
+        # load in batter stats
+        batStats = [0,0,0,0,0,0,0,0]
+        self.addBatterStats(batStats, prevGmpk, lineup)
+
+        # load in pitcher stats
+        g = GameStats(self.year)
+        pitchingStats = [0,0,0,0,0,0,0,0,0,0,0,0,0]
+        g.addPitcherStats(pitchingStats, pitcherGmpk, pitcher)
+
+        # load in bullpen stats and ERR
+        g.addBullpenStats(pitchingStats, prevGmpk, tm)
+        g.earnedRunRatio(pitchingStats, pitcherGmpk, prevGmpk, tm, pitcher)
+
+        # get last 10 batting stats
+        lTen = Last10(self.year)
+        last10stats = lTen.gatherGameStats(prevGmpk, lineup)
+
+        teamWinPercent = self.BATTERS[tm]['gmpks'][prevGmpk]['winPercent']
+        teamWinPercentLast10 = self.BATTERS[tm]['gmpks'][prevGmpk]['winsLast10']
+        pExpLast10 = self.BATTERS[tm]['gmpks'][prevGmpk]['expectation']
+
+        # add in list of stats received for team gamepack
+        teamStats = [teamWinPercent, teamWinPercentLast10, pExpLast10] + batStats + last10stats + pitchingStats
+        return teamStats
 
     # get game stats of every game of 2019
-    def inputGameStats(self):
+    def inputGameStats(self, game):
         stats = {}
-        for i in range(2):
-            tm = ''
-            if i == 0:
-                print("Begin with away team.")
-                tm = input("Enter away team name: ")
-            else:
-                print("Home team")
-                tm = input("Enter home team name: ")
+        lineups = self.getLineups(game)
+        if lineups == -1:
+            return -1
 
+        print("####################################")
+        print("##### {0:10} @  {1:10} #####".format(lineups['away'].upper(), lineups['home'].upper()))
+        print("####################################")
 
-            lineup = []
-            startingPitcher = 0
+        awayPitchId = lineups['aStarter']
+        homePitchId = lineups['hStarter']
 
-            print("Start with pitcher")
+        if awayPitchId == None:
+            print("Away pitcher not found. Do not bet this game. Goodbye.\n")
+            return -1
+        if homePitchId == None:
+            print("Away pitcher not found. Do not bet this game. Goodbye.\n")
+            return -1
 
-            pitcher = input("Enter (firstname lastname): ")
-            pitchId = self.lookup(pitcher, tm)
+        try:
+            aPitcher = self.PITCHERS[awayPitchId]
+            aPitcher = awayPitchId
+        except KeyError:
+            print("Away pitcher not found. Do not bet this game. Goodbye.\n")
+            return -1
 
-            if pitchId == None:
-                print("Pitcher not found. Do not bet this game. Goodbye.")
-                exit()
+        try:
+            hPitcher = self.PITCHERS[homePitchId]
+            hPitcher = homePitchId
+        except KeyError:
+            print("Home pitcher not found. Do not bet this game. Goodbye.\n")
+            return -1
 
-            try:
-                pitcher = self.PITCHERS[pitchId]
-                pitcher = pitchId
-            except KeyError:
-                print("Pitcher not found. Do not bet this game. Goodbye.")
-                exit()
+        homeLineup = lineups['hLineup']
+        awayLineup = lineups['aLineup']
 
-            print("Next is batting lineup... Enter full name, or 'next' to continue.")
-
-            plyr = ""
-            while plyr != "next":
-                plyr = input("Enter: ")
-                if plyr == 'next':
-                    break
-
-                try:
-                    batId = self.lookup(plyr, tm)
-                    self.BATTERS[batId]
-                except:
-                    print("Batter not found")
-                    continue
-
-                lineup.append(batId)
-
-            print("Gathering stats...")
-
-            # getGamepk for lineup and bullpen
-            prevGmpk = self.BATTERS[tm]['gmpksInOrder'][-1]
-
-            # check if pitcher has pitched in previous game
-            pitcherGmpk = self.PITCHERS[pitchId]['gmpksInOrder'][-1]
-
-            # load in batter stats
-            batStats = [0,0,0,0,0,0,0,0]
-            self.addBatterStats(batStats, prevGmpk, lineup)
-
-            # load in pitcher stats
-            g = GameStats(self.year)
-            pitchingStats = [0,0,0,0,0,0,0,0,0,0,0,0,0]
-            g.addPitcherStats(pitchingStats, pitcherGmpk, pitcher)
-
-            # load in bullpen stats and ERR
-            g.addBullpenStats(pitchingStats, prevGmpk, tm)
-            g.earnedRunRatio(pitchingStats, pitcherGmpk, prevGmpk, tm, pitcher)
-
-            # get last 10 batting stats
-            lTen = Last10(self.year)
-            last10stats = lTen.gatherGameStats(prevGmpk, lineup)
-
-            teamWinPercent = self.BATTERS[tm]['gmpks'][prevGmpk]['winPercent']
-            teamWinPercentLast10 = self.BATTERS[tm]['gmpks'][prevGmpk]['winsLast10']
-            pExpLast10 = self.BATTERS[tm]['gmpks'][prevGmpk]['expectation']
-
-            # add in list of stats received for team gamepack
-            teamStats = [teamWinPercent, teamWinPercentLast10, pExpLast10] + batStats + last10stats + pitchingStats
-            if i == 0:
-                stats['away'] = teamStats
-            else: stats['home'] = teamStats
-
-            if i == 0:
-                print("Next: Home team")
+        stats['away'] = self.returnTeamStats(lineups['away'], aPitcher, awayLineup)
+        stats['home'] = self.returnTeamStats(lineups['home'], hPitcher, homeLineup)
 
         lst = stats['away'] + stats['home']
-        print("List outputted to be fed into model...")
         return lst
+
+
+       # use last_game() to grab info, automate lineup lookup

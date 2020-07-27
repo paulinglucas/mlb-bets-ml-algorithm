@@ -141,10 +141,10 @@ def get_model(loss_func, input_dim, output_dim, base=1000, multiplier=0.25, p=0.
     return model
 
 def train_model(loss_func):
-    model = get_model(loss_func, 58, 2, base=50, multiplier=.4)
+    model = get_model(loss_func, 58, 2)
     hd5file = loss_func + ".hdf5"
     history = model.fit(train_data, train_labels, validation_data=(test_data, test_labels),
-              epochs=200, batch_size=10, callbacks=[tf.keras.callbacks.EarlyStopping(patience=25),tf.keras.callbacks.ModelCheckpoint(hd5file,save_best_only=True)])
+              epochs=200, batch_size=100, callbacks=[tf.keras.callbacks.EarlyStopping(patience=25),tf.keras.callbacks.ModelCheckpoint(hd5file,save_best_only=True)])
     print('Training Loss : {}\nValidation Loss : {}'.format(model.evaluate(train_data, train_labels), model.evaluate(test_data, test_labels)))
 
     # model.save('models/' + FILENAME)
@@ -158,6 +158,3 @@ print()
 inp = input("Enter loss function: ")
 
 train_model(inp)
-# new_model = tf.keras.models.load_model('my_model.h5')
-# new_model.summary()
-# predictions = new_model.predict(test_data[0])
