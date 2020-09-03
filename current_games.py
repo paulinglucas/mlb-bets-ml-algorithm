@@ -21,7 +21,7 @@ def invalidGame(gmpk, year):
     for gm in dict:
         if 'Scheduled' in gm['status']:
             return True
-        if gm['game_type'] != 'R' or (gm['status'] == "Postponed" or gm['status'] == "Cancelled"):
+        if gm['game_type'] != 'R' or (gm['status'] == "Postponed" or gm['status'] == "Cancelled") or gm['status'] == "In Progress":
             return True
         if int(gm['game_date'][:4]) < year:
             return True
@@ -33,7 +33,7 @@ def setUpGamepks(year):
     gmpks = {}
     yesterday = d.today() - timedelta(days=1)
     dt = yesterday.strftime('%Y-%m-%d')
-    gm = mlb.schedule(date=dt)
+    gm = mlb.schedule(start_date='2020-09-02', end_date=dt)
 
     for g in gm:
         gmpk = g['game_id']

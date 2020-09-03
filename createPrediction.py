@@ -77,7 +77,10 @@ class Predictor:
                     lhpSum += 1
                 count += 1
         except KeyError: pass
-        lhpPercent = round(lhpSum / count, 2)
+        try:
+            lhpPercent = round(lhpSum / count, 2)
+        except ZeroDivisionError:
+            lhpPercent = 0.0
         batStats[BatterStats.LHP] = lhpPercent
 
     def getLineups(self, g):

@@ -130,17 +130,32 @@ class GameStats:
             pitchingStats[PitcherStats.HAND] = 0
         else:
             pitchingStats[PitcherStats.HAND] = 1
-        pitchingStats[PitcherStats.ERA] = float(self.PITCHERS[pitcher]['gmpks'][gmpk]['era'])
-        pitchingStats[PitcherStats.WHIP] = \
-            round((float(self.PITCHERS[pitcher]['gmpks'][gmpk]['hits']) + \
-                   float(self.PITCHERS[pitcher]['gmpks'][gmpk]['baseOnBalls'])) / \
-                   float(self.PITCHERS[pitcher]['gmpks'][gmpk]['inningsPitched']), 3)
-        pitchingStats[PitcherStats.HRP9] = round(float(self.PITCHERS[pitcher]['gmpks'][gmpk]['homeRuns']) * 9 \
-                                               / float(self.PITCHERS[pitcher]['gmpks'][gmpk]['inningsPitched']), 3)
-        pitchingStats[PitcherStats.SOP9] = round(float(self.PITCHERS[pitcher]['gmpks'][gmpk]['strikeOuts']) * 9 \
-                                               / float(self.PITCHERS[pitcher]['gmpks'][gmpk]['inningsPitched']), 3)
-        pitchingStats[PitcherStats.IPG] = round(float(self.PITCHERS[pitcher]['gmpks'][gmpk]['inningsPitched']) / \
-                                                float(self.PITCHERS[pitcher]['gmpks'][gmpk]['gamesPlayed']), 3)
+        try:
+            pitchingStats[PitcherStats.ERA] = float(self.PITCHERS[pitcher]['gmpks'][gmpk]['era'])
+        except ValueError:
+            if float(self.PITCHERS[pitcher]['gmpks'][gmpk]['hits']) > 2:
+                pitchingStats[PitcherStats.ERA] = 99.99
+            else:
+                pitchingStats[PitcherStats.ERA] = 0
+        if self.PITCHERS[pitcher]['gmpks'][gmpk]['inningsPitched'] == 0:
+            if float(self.PITCHERS[pitcher]['gmpks'][gmpk]['hits']) > 2:
+                pitchingStats[PitcherStats.WHIP] = 99.99
+            else:
+                pitchingStats[PitcherStats.WHIP] = 0
+            pitchingStats[PitcherStats.HRP9] = 0.0
+            pitchingStats[PitcherStats.SOP9] = 0.0
+            pitchingStats[PitcherStats.IPG] = 0.0
+        else:
+            pitchingStats[PitcherStats.WHIP] = \
+                round((float(self.PITCHERS[pitcher]['gmpks'][gmpk]['hits']) + \
+                       float(self.PITCHERS[pitcher]['gmpks'][gmpk]['baseOnBalls'])) / \
+                       float(self.PITCHERS[pitcher]['gmpks'][gmpk]['inningsPitched']), 3)
+            pitchingStats[PitcherStats.HRP9] = round(float(self.PITCHERS[pitcher]['gmpks'][gmpk]['homeRuns']) * 9 \
+                                                   / float(self.PITCHERS[pitcher]['gmpks'][gmpk]['inningsPitched']), 3)
+            pitchingStats[PitcherStats.SOP9] = round(float(self.PITCHERS[pitcher]['gmpks'][gmpk]['strikeOuts']) * 9 \
+                                                   / float(self.PITCHERS[pitcher]['gmpks'][gmpk]['inningsPitched']), 3)
+            pitchingStats[PitcherStats.IPG] = round(float(self.PITCHERS[pitcher]['gmpks'][gmpk]['inningsPitched']) / \
+                                                    float(self.PITCHERS[pitcher]['gmpks'][gmpk]['gamesPlayed']), 3)
         pitchingStats[PitcherStats.RYAN] = self.PITCHERS[pitcher]['gmpks'][gmpk]['ryanicity']
 
     # bullpen stats going in too
