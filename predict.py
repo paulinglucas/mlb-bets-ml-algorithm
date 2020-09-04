@@ -5,6 +5,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import tensorflow as tf
+import twilio
 from magic import win_loss, spreads_loss, ou_loss, loss_accuracy
 from tensorflow import keras
 import numpy as np
@@ -117,6 +118,9 @@ def main(send_text=False):
             if lst == [-1]: continue
             lst = normalize_lst(lst)
 
+            lst = np.array(lst)
+            lst = lst.reshape(1,-1) 
+
             print("PREDICTIONS (ML, SPREAD, O/U)")
             print("[P(away), P(home)]:    ", end='')
             ml_out = parsePrediction(ml_model.predict(lst))
@@ -147,7 +151,10 @@ def main(send_text=False):
                     txt_buf += "o/u: " + str(ou_out) + '\n\n'
 
         if send_text:
-            send_sms(txt_buf)
+            try:
+                send_sms(txt_buf)
+            except twilio.base.exceptions.TwilioRestException:
+                print("No odds big enough to send text via Twilio")
 
 if __name__ == "__main__":
     main(send_text=True)
