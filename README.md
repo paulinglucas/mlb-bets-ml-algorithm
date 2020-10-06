@@ -7,8 +7,9 @@ This repo is designed for one to be able to gather all of the necessary statisti
 #### Libraries / outside data used
 
 - Past odds gathered from database on website: https://sportsbookreviewsonline.com/scoresoddsarchives/mlb/mlboddsarchives.htm
-- MLB Data API used to gather player names and hand-dominance
-- Python wrapper of MLB API created by Todd Roberts to gather player statistics; link: https://github.com/toddrob99/MLB-StatsAPI/wiki
+- MLB Data API used to gather player names and hand-dominance (using requests and json python libraries)
+- Python wrapper of MLB API created by Todd Roberts to gather player statistics; link: https://github.com/toddrob99/MLB-StatsAPI/wiki (pip install MLB-StatsAPI)
+- The neural network relies on Tensorflow with Keras, so visit the Google Tensorflow website on how to get the dependencies necessary to create your own model
 
 ## To run the program
 
@@ -44,7 +45,7 @@ This is necessary so the model can use relevant statistics to base its predictio
 
 3. Run predict.py on future games to get outcome prediction
 ```
-$ python createPrediction.py
+$ python predict.py
 ```
 Currently I have this running hourly during the day to check if lineups have been created for games, then I have it set to text my number (configure Twilio settings in send_sms_skeleton.py file) if any predictions are above my confidence threshold, to maximize winning probability and profitability, which can be changed at the top of the predict.py file.
 
