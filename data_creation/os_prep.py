@@ -6,7 +6,7 @@ os.chdir(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 CURR_YEAR = 2020
 
-def main():
+def prep():
     # need year direcotries made for data
     for year in range(2014,CURR_YEAR+1):
         filename = "pickle_files/" + str(year) + "/"
@@ -42,4 +42,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    prep()
