@@ -36,14 +36,14 @@ The choice is up to you based on your betting style, however moneyline bets have
 
 A .hdf5 file is created after training, which allows you to not have to train model each time you wish to predict.
 
-3. Run the current_games.py program every day to gather current season statistics (use cron to run current_games.sh bash script in bash script directory each day)
+3. Run the precition_creation/current_games.py program in its directory every day to gather current season statistics (use cron to run current_games.sh bash script in bash script directory each day)
 ```
 $ python current_games.py
 ```
 
 This is necessary so the model can use relevant statistics to base its predictions for future current-season games. Make sure it runs every day of a regular season.
 
-3. Run predict.py on future games to get outcome prediction
+3. Run prediction_creation/predict.py in its directory on future games to get outcome prediction
 ```
 $ python predict.py
 ```
