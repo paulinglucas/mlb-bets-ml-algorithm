@@ -1,4 +1,3 @@
 #!/bin/bash
-cd ~/Dev/scripts/mlb-bets-ml-algorithm/
-source ~/venv/bin/activate
+cd ~/mlb/mlb-bets-ml-algorithm/
 python3 predict.py
