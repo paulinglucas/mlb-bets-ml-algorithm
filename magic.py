@@ -1,4 +1,3 @@
-
 # winner: 58-63% accurate
 # spread: 50-58% accurate
 # over/under: 55-64% accurate
@@ -19,7 +18,10 @@
 
 # 3 team stats, 8 batting stats, 5 last 10 stats, 13 pitching stats
 from __future__ import absolute_import, division, print_function, unicode_literals
-import sys
+
+import sys, os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "data_creation")))
 
 import tensorflow as tf
 from tensorflow import keras
@@ -28,9 +30,10 @@ import numpy as np
 
 DATA_NEW = extractPickle('data_to_use.pickle', 1)
 OUTPUTS_NEW = extractPickle('outputs_to_use.pickle', 1)
-CUTOFF = 9000
+CUTOFF = int(len(DATA_NEW)*0.78)
 FILENAME = 'ou.h5'
 
+# normalize data
 for i in range(len(DATA_NEW)):
     DATA_NEW[i][0]  = round(DATA_NEW[i][0], 3) # OPS
     DATA_NEW[i][29] = round(DATA_NEW[i][29], 3)
@@ -73,39 +76,8 @@ for i in range(len(DATA_NEW)):
 # OUTPUTS_NEW = extractPickle('outcome_vectors.pickle', 2015)
 # CUTOFF = 2000
 
-# for r in range(len(OUTPUTS_NEW)):
-#     OUTPUTS_NEW[r] = OUTPUTS_NEW[r][0:2]
-
-
-# print("Enter loss function you wish to train with:")
-# print("win_loss: train model to predict winners of future games")
-# print("spreads_loss: train model to predict who will cover spread of games")
-# print("ou_loss: train model to predict if game will meet over/under")
-# print()
-#
-# loss_func = input("Enter loss function: ")
-#
-# if loss_func == 'win_loss':
-#     for r in range(len(OUTPUTS_NEW)):
-#         OUTPUTS_NEW[r] = OUTPUTS_NEW[r][0:2]
-# elif loss_func == 'spreads_loss':
-#     for r in range(len(OUTPUTS_NEW)):
-#         OUTPUTS_NEW[r] = OUTPUTS_NEW[r][2:4]
-# elif loss_func == 'ou_loss':
-#     for r in range(len(OUTPUTS_NEW)):
-#         OUTPUTS_NEW[r] = OUTPUTS_NEW[r][4:6]
-# else:
-#     print("Invalid loss function")
-#     sys.exit(0)
-
-
-train_data = DATA_NEW[:CUTOFF]
-test_data = DATA_NEW[CUTOFF:]
-train_labels = OUTPUTS_NEW[:CUTOFF]
-test_labels = OUTPUTS_NEW[CUTOFF:]
-
-
 # not mine, off website
+# currently unused, sigmoid function returns awfully confident values that render betting on confidence value useless
 def odds_loss(y_true, y_pred):
     """
     The function implements the custom loss function
@@ -210,13 +182,41 @@ def get_model(loss_func, input_dim, output_dim, base=1000, multiplier=0.25, p=0.
 
     return model
 
-def train_model(loss_func):
+def train_model():
+
+    print("Enter loss function you wish to train with:")
+    print("win_loss: train model to predict winners of future games")
+    print("spreads_loss: train model to predict who will cover spread of games")
+    print("ou_loss: train model to predict if game will meet over/under")
+    print()
+
+    loss_func = input("Enter loss function: ")
+
+    if loss_func == 'win_loss':
+        for r in range(len(OUTPUTS_NEW)):
+            OUTPUTS_NEW[r] = OUTPUTS_NEW[r][0:2]
+    elif loss_func == 'spreads_loss':
+        for r in range(len(OUTPUTS_NEW)):
+            OUTPUTS_NEW[r] = OUTPUTS_NEW[r][2:4]
+    elif loss_func == 'ou_loss':
+        for r in range(len(OUTPUTS_NEW)):
+            OUTPUTS_NEW[r] = OUTPUTS_NEW[r][4:6]
+    else:
+        print("Invalid loss function")
+        sys.exit(0)
+
+    train_data = DATA_NEW[:CUTOFF]
+    test_data = DATA_NEW[CUTOFF:]
+    train_labels = OUTPUTS_NEW[:CUTOFF]
+    test_labels = OUTPUTS_NEW[CUTOFF:]
+
     model = get_model(loss_func, 58, 2, base=40, multiplier=0.4)
     hd5file = loss_func + ".hdf5"
     history = model.fit(train_data, train_labels, validation_data=(test_data, test_labels),
               epochs=200, batch_size=50, callbacks=[tf.keras.callbacks.EarlyStopping(patience=25),tf.keras.callbacks.ModelCheckpoint(hd5file,save_best_only=True)])
     print('Training Loss : {}\nValidation Loss : {}'.format(model.evaluate(train_data, train_labels), model.evaluate(test_data, test_labels)))
 
-    # model.save('models/' + FILENAME)
+    model.save('models/' + FILENAME)
 
-# train_model(loss_func)
+if __name__ == '__main__':
+    train_model()

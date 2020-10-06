@@ -1,6 +1,7 @@
 import statsapi as mlb
 from date import Date
 import os
+os.chdir(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # This file serves as the algorithm necessary to extract data from
 # every game using the mlb stats api from Todd Robb. This data will be

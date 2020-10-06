@@ -5,6 +5,9 @@ import pickle
 from math import floor
 import sys
 
+import os
+os.chdir(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 # adds dictionary to pickle file
 def addToPickle(variabl, fname, year, save_path="pickle_files/"):
     with open(save_path + str(year) + "/" + fname, "wb") as f:

@@ -1,3 +1,7 @@
+import sys, os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data_creation")))
+
 import getGamepks as get
 import gatherPlayers as players
 import gameStats as stat
@@ -9,6 +13,7 @@ from datetime import timedelta
 
 YEAR = 2020
 
+# check if game has already been accounted for
 def isGameInFile(tm, gmpk):
     with open("team_gameData/2020/" + get.teams_id[tm].replace(" ", "_") + ".txt", "r") as fh:
         for line in fh:
@@ -16,6 +21,7 @@ def isGameInFile(tm, gmpk):
                 return True
         return False
 
+# is game a regular/postseason game, that isnt postponed?
 def invalidGame(gmpk, year):
     dict = mlb.schedule(game_id=gmpk)
     for gm in dict:
@@ -27,8 +33,7 @@ def invalidGame(gmpk, year):
             return True
     return False
 
-
-
+# add gamepacks to year 2020
 def setUpGamepks(year):
     gmpks = {}
     yesterday = d.today() - timedelta(days=1)
@@ -66,7 +71,7 @@ def setUpGamepks(year):
         for gmpk in gmpks:
             f.write(str(gmpk) + ": " + gmpks[gmpk] + "\n")
 
-
+# do data creation and updating throughout the year
 def main():
     setUpGamepks(YEAR)
 

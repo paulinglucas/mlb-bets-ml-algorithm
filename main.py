@@ -1,3 +1,7 @@
+import sys, os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "data_creation")))
+
 import statsapi as mlb
 from date import Date
 from getGamepks import GamePackGetter
@@ -9,7 +13,7 @@ from createUsableList import ListCreator
 
 #missing year 2016
 BEG_YEAR = 2014
-END_YEAR = 2019
+END_YEAR = 2020
 
 def main():
     print()
@@ -19,9 +23,11 @@ def main():
         if yr == 2016:
             continue
         print("YEAR: " + str(yr))
-        # print("GENERATING GAMEPACK FILES FOR YEAR " + str(yr))
-        # g = GamePackGetter(yr)
-        # g.generateLists()
+
+        # get gamepack files located in team_gameData
+        print("GENERATING GAMEPACK FILES FOR YEAR " + str(yr))
+        g = GamePackGetter(yr)
+        g.generateLists()
 
         # get player data for specific year
         print()

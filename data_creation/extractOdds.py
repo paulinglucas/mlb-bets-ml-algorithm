@@ -5,6 +5,9 @@ import statsapi as mlb
 from sys import exit
 import gatherPlayers as p
 
+import os
+os.chdir(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 # Gmpk: int
 # away:, home:
 #     Date: ""
@@ -79,6 +82,7 @@ class OddsExtractor:
             else: line[i] = int(line[i])
         return line
 
+    # good to convert to make computations better for custom loss function
     def convertAmericanToDecimal(self, odds):
         for i in range(5):
             if i % 2 != 0: continue

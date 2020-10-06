@@ -22,7 +22,7 @@ which will take a few hours to complete. Program gathers all player statistics f
 
 Data gets saved in .pickle files so user does not need to run long program each time it needs to gather data. **Make sure to delete pickle files each time you run main.py program so you don't accidentally overlap data in selected years.**
 
-2. Run the magic.py program to train neural network
+2. Run the magic.py program to train your neural network
 ```
 $ python magic.py
 ```
@@ -31,23 +31,24 @@ This program will prompt you to pick a loss function to train your neural networ
 - spreads_loss will train network to optimize for predicting spread bets effectively
 - ou_loss will train network to optimize for predicting over/under bets effectively
 
-The choice is up to you based on your betting style, however moneyline bets have proven to be most lucrative with this model.
+The choice is up to you based on your betting style, however moneyline bets have proven to be most lucrative with this model (boats around 62% accuracy).
 
 A .hdf5 file is created after training, which allows you to not have to train model each time you wish to predict.
 
-3. Run the current_games.py program every day to gather current season statistics
+3. Run the current_games.py program every day to gather current season statistics (use cron to run current_games.sh bash script in bash script directory each day)
 ```
 $ python current_games.py
 ```
 
 This is necessary so the model can use relevant statistics to base its predictions for future current-season games. Make sure it runs every day of a regular season.
 
-3. Run createPrediction.py on future games to get outcome prediction
+3. Run predict.py on future games to get outcome prediction
 ```
 $ python createPrediction.py
 ```
+Currently I have this running hourly during the day to check if lineups have been created for games, then I have it set to text my number (configure Twilio settings in send_sms_skeleton.py file) if any predictions are above my confidence threshold, to maximize winning probability and profitability, which can be changed at the top of the predict.py file.
 
-This program will ask you to input the lineups of both teams in a game you wish to bet on. The model uses individualized statistics for the idea of better accuracy. The statistics used to train and predict are as follows:
+The model uses individualized statistics for the idea of better accuracy. The statistics used to train and predict are as follows:
 
 Away stats first, followed by home stats:
   - Current team win percentage
@@ -57,5 +58,15 @@ Away stats first, followed by home stats:
   - Same stats but only taken over last 10 games of lineup
   - Pitching stats, beginning with starting pitcher ofllowed by bullpen, including strikouts per game, ERA, WHIP, Ryanicity, earned run ratio, etc.
 
-The model will spit out a two-element list in the form: [0,1] or [1,0]. If the
-1 is the first elelemtn of the list, the model suggests betting on the away team, otherwise it suggests betting on the home team.
+The model will spit out the name of the teams playing each other in the format:
+
+```
+AWAY TEAM vs HOME TEAM
+ml: AWAY ODDS, HOME ODDS
+spread: AWAY ODDS, HOME ODDS
+o/u: OVER ODDS, UNDER ODDS
+```
+
+The model only shows the odds of the favorite for each bet (ml, spread, o/u), since the odds for the other team is simply the negation of the negative odds. We only care about winners, so the winning predictions are the only ones shown.
+
+### Let's make some money!!

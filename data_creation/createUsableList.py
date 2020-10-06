@@ -1,6 +1,9 @@
 import gatherPlayers as p
 import gameStats as gm
 
+import os
+os.chdir(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 # 40 x 2425
 
 class ListCreator:

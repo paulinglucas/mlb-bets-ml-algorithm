@@ -3,6 +3,9 @@ import getGamepks as gm
 import statsapi as mlb
 from enum import IntEnum
 
+import os
+os.chdir(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 
 SAVE_PATH = "team_gameData/"
 

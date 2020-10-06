@@ -129,14 +129,15 @@ dmypy.json
 .pyre/
 
 # messed up files
-references
+references/2019/bs2.txt
+references/2019/output.txt
 team_gameData
 pickle_files
 debuggingTeamStats.py
-os_prep.py
 odds_loss.hdf5
 debug_script.py
 debug/
 todo.txt
 tiff.py
 models
+send_sms.py

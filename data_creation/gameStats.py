@@ -4,6 +4,9 @@ import statsapi as mlb
 from enum import IntEnum
 from last10 import Last10
 
+import os
+os.chdir(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 
 SAVE_PATH = "team_gameData/"
 

@@ -1,8 +1,11 @@
 # winner: 58-63% accurate
 # spread: 50-58% accurate
 # over/under: 55-64% accurate
-
 from __future__ import absolute_import, division, print_function, unicode_literals
+import sys, os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data_creation")))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import tensorflow as tf
 import twilio
@@ -19,6 +22,7 @@ from datetime import timedelta
 
 CONFIDENCE_VALUE = -350
 
+# normalize data
 def normalize_lst(lst):
     lst[0][0]  = round(lst[0][0], 3) # OPS
     lst[0][29] = round(lst[0][29], 3)
@@ -59,6 +63,7 @@ def normalize_lst(lst):
 
     return lst
 
+# want sigmoid to give us american odds for confidence values
 def convertPercentToOdds(percent):
     percent = percent*100
     if percent == 100:
@@ -70,6 +75,7 @@ def convertPercentToOdds(percent):
     else:
         return -1
 
+# make prediction in user-readable format
 def parsePrediction(predict):
     away = convertPercentToOdds(predict[0][0])
     home = convertPercentToOdds(predict[0][1])
@@ -79,6 +85,7 @@ def parsePrediction(predict):
         home = "---"
     return str(away) + "," + str(home)
 
+# is prediction above our confidence threshold?
 def checkIfConfident(pred):
     pred = pred.strip().split(",")
     if pred[0] != "---":
@@ -89,7 +96,7 @@ def checkIfConfident(pred):
             return True
     return False
 
-
+## print predictions to console, send text for confident values
 def main(send_text=False):
                                         #models/ml.h5
     ml_model = tf.keras.models.load_model('models/win_loss.hdf5', custom_objects={'win_loss': win_loss})
@@ -119,7 +126,7 @@ def main(send_text=False):
             lst = normalize_lst(lst)
 
             lst = np.array(lst)
-            lst = lst.reshape(1,-1) 
+            lst = lst.reshape(1,-1)
 
             print("PREDICTIONS (ML, SPREAD, O/U)")
             print("[P(away), P(home)]:    ", end='')
