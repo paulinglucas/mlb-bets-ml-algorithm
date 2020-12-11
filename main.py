@@ -10,15 +10,15 @@ from gatherPlayers import PlayerGatherer
 from gameStats import GameStats
 from extractOdds import OddsExtractor
 from createUsableList import ListCreator
-from os_prep import prep
+#from os_prep import prep
 
 #missing year 2016
-BEG_YEAR = 2014
+BEG_YEAR = 2020
 END_YEAR = 2020
 
 def main():
     # get directories rolling in system
-    prep()
+    #prep()
     print()
     print("BEGINNING THE EXTRACTION OF PLAYER DATA BETWEEN YEARS " + str(BEG_YEAR) + " AND " + str(END_YEAR))
     for yr in range(BEG_YEAR, END_YEAR+1):
@@ -27,22 +27,22 @@ def main():
             continue
         print("YEAR: " + str(yr))
 
-        # get gamepack files located in team_gameData
-        print("GENERATING GAMEPACK FILES FOR YEAR " + str(yr))
-        g = GamePackGetter(yr)
-        g.generateLists()
-
-        # get player data for specific year
-        print()
-        print("NOW GATHERING PLAYER STATS FOR YEAR " + str(yr))
-        p = PlayerGatherer(yr)
-        p.gatherStats()
-
-        # creates team stats leading up to every mlb game ...
-        print()
-        print("TURNING PLAYER STATS INTO TEAM STATISTICS FOR YEAR " + str(yr))
-        stats = GameStats(yr)
-        stats.addInAllStats()
+        # # get gamepack files located in team_gameData
+        # print("GENERATING GAMEPACK FILES FOR YEAR " + str(yr))
+        # g = GamePackGetter(yr)
+        # g.generateLists()
+        #
+        # # get player data for specific year
+        # print()
+        # print("NOW GATHERING PLAYER STATS FOR YEAR " + str(yr))
+        # p = PlayerGatherer(yr)
+        # p.gatherStats()
+        #
+        # # creates team stats leading up to every mlb game ...
+        # print()
+        # print("TURNING PLAYER STATS INTO TEAM STATISTICS FOR YEAR " + str(yr))
+        # stats = GameStats(yr)
+        # stats.addInAllStats()
 
         # get odds of every game ...
         print()

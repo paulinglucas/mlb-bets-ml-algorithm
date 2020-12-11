@@ -32,7 +32,7 @@ def prep():
 
     if not os.path.exists(os.path.dirname("pickle_files/1/")):
         try:
-            os.makedirs(os.path.dirname("pickle_files/1/""))
+            os.makedirs(os.path.dirname("pickle_files/1/"))
         except OSError as exc: # Guard against race condition
             if exc.errno != errno.EEXIST:
                 raise

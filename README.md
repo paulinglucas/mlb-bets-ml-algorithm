@@ -70,4 +70,14 @@ o/u: OVER ODDS, UNDER ODDS
 
 The model only shows the odds of the favorite for each bet (ml, spread, o/u), since the odds for the other team is simply the negation of the negative odds. We only care about winners, so the winning predictions are the only ones shown.
 
+### Backtesting
+
+You can go into the tests/ directory to make sure the data backtests properly using
+
+```
+python3 backtesting.py [CONFIDENCE_VALUE] [AMOUNT_PER_BET]
+```
+
+where confidence value equals how sure you want the models to be before you bet (displayed in American odds format), and amount bet is how much you would want to bet.
+
 ### Let's make some money!!
