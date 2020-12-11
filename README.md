@@ -32,7 +32,7 @@ This program will prompt you to pick a loss function to train your neural networ
 - spreads_loss will train network to optimize for predicting spread bets effectively
 - ou_loss will train network to optimize for predicting over/under bets effectively
 
-The choice is up to you based on your betting style, however moneyline bets have proven to be most lucrative with this model (boats around 62% accuracy).
+The choice is up to you based on your betting style, however moneyline bets have proven to be most lucrative with this model (boasts around 62% accuracy).
 
 A .hdf5 file is created after training, which allows you to not have to train model each time you wish to predict.
 
