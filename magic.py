@@ -210,10 +210,10 @@ def train_model():
     train_labels = OUTPUTS_NEW[:CUTOFF]
     test_labels = OUTPUTS_NEW[CUTOFF:]
 
-    model = get_model(loss_func, 58, 2, base=40, multiplier=0.4)
+    model = get_model(loss_func, 58, 2, base=50, multiplier=0.6)
     hd5file = loss_func + ".hdf5"
     history = model.fit(train_data, train_labels, validation_data=(test_data, test_labels),
-              epochs=200, batch_size=50, callbacks=[tf.keras.callbacks.EarlyStopping(patience=25),tf.keras.callbacks.ModelCheckpoint(hd5file,save_best_only=True)])
+              epochs=200, batch_size=100, callbacks=[tf.keras.callbacks.EarlyStopping(patience=25),tf.keras.callbacks.ModelCheckpoint(hd5file,save_best_only=True)])
     print('Training Loss : {}\nValidation Loss : {}'.format(model.evaluate(train_data, train_labels), model.evaluate(test_data, test_labels)))
 
     model.save('models/' + FILENAME)

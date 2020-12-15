@@ -14,7 +14,7 @@ import numpy as np
 from magic import win_loss, spreads_loss, ou_loss, loss_accuracy
 
 class Backtest:
-    def __init__(self, confidence, amount_per_bet):
+    def __init__(self, confidence, amount_per_bet, wantScreen):
         self.LIST = extractPickle('twoD_list.pickle', 2020)
         self.OUTCOMES = extractPickle('outcome_vectors.pickle', 2020)
         self.ml_model = tf.keras.models.load_model('models/win_loss.hdf5', custom_objects={'win_loss': win_loss})
@@ -22,6 +22,7 @@ class Backtest:
         self.ou_model = tf.keras.models.load_model('models/ou_loss.hdf5', custom_objects={'ou_loss': ou_loss})
         self.confidence = self.convertOddsToPercent(confidence)
         self.amount_per_bet = amount_per_bet
+        self.wantScreen = wantScreen
 
     # normalize data
     def normalize_lst(self, lst):
@@ -72,13 +73,14 @@ class Backtest:
         return .5
 
     def test(self):
-        os.system('clear')
+        #os.system('clear')
         ## curses initialization
         try:
-            stdscr = curses.initscr()
-            curses.curs_set(0)
-            curses.noecho()
-            curses.cbreak()
+            if self.wantScreen:
+                stdscr = curses.initscr()
+                curses.curs_set(0)
+                curses.noecho()
+                curses.cbreak()
 
             ## normalize first
             for i in range(len(self.LIST)):
@@ -110,11 +112,12 @@ class Backtest:
             under_bets = 0
 
             for game, outcome in zip(self.LIST[180:], self.OUTCOMES[180:]):
-                stdscr.erase()
-                ## update days in terminal
-                game_num += 1
-                if game_num % 15 == 0: day += 1
-                stdscr.addstr("DAY {}\n\n".format(day))
+                if self.wantScreen:
+                    stdscr.erase()
+                    ## update days in terminal
+                    game_num += 1
+                    if game_num % 15 == 0: day += 1
+                    stdscr.addstr("DAY {}\n\n".format(day))
                 ## moneyline
                 ml_predict = self.ml_model.predict([game])
 
@@ -173,57 +176,64 @@ class Backtest:
                 total_won = num_ml_success + num_spread_success + num_ou_success
                 amount_bet = ml_money + spread_money + ou_money
                 amount_won = ml_winnings + spread_winnings + ou_winnings
+                if self.wantScreen:
+                    try:
+                        stdscr.addstr("SUCCESS RATE: {}%\n".format(round(total_won / total_bet, 3)))
+                    except ZeroDivisionError:
+                        pass
+                    stdscr.addstr("\n")
+                    stdscr.addstr("BETS MADE: {}\n".format(total_bet))
+                    stdscr.addstr("TOTAL BET: ${}\n".format(round(amount_bet, 2)))
+                    stdscr.addstr("TOTAL WON: ${}\n".format(round(amount_won - amount_bet, 2)))
+                    stdscr.addstr("\n")
+                    try:
+                        stdscr.addstr("ML BETS MADE: {}\n".format(num_ml_bets))
+                        stdscr.addstr("ML SUCCESS RATE: {}%\n".format(round(num_ml_success / num_ml_bets, 3)))
+                        stdscr.addstr("ML HOME BET RATE: {}%\n".format(round(home_bets / num_ml_bets, 3)))
+                        stdscr.addstr("AVG WINNINGS: ${}\n".format(round((ml_winnings-ml_money) / num_ml_bets, 2)))
+                    except ZeroDivisionError:
+                        pass
+                    stdscr.addstr("ML PROFITS: ${}\n".format(round(ml_winnings - ml_money, 2)))
+                    stdscr.addstr("\n")
+                    try:
+                        stdscr.addstr("SPREAD BETS MADE: {}\n".format(num_spread_bets))
+                        stdscr.addstr("SPREAD SUCCESS RATE: {}%\n".format(round(num_spread_success / num_spread_bets, 3)))
+                        stdscr.addstr("HOME SPREAD BET RATE: {}%\n".format(round(home_spread_bets / num_ml_bets, 3)))
+                        stdscr.addstr("AVG WINNINGS: ${}\n".format(round((spread_winnings-spread_money) / num_spread_bets, 2)))
+                    except ZeroDivisionError:
+                        pass
+                    stdscr.addstr("SPREAD PROFITS: ${}\n".format(round(spread_winnings - spread_money, 2)))
+                    stdscr.addstr("\n")
+                    try:
+                        stdscr.addstr("O/U BETS MADE: {}\n".format(num_ou_bets))
+                        stdscr.addstr("O/U SUCCESS RATE: {}%\n".format(round(num_ou_success / num_ou_bets, 3)))
+                        stdscr.addstr("UNDER BET RATE: {}%\n".format(round(under_bets / num_ml_bets, 3)))
+                        stdscr.addstr("AVG WINNINGS: ${}\n".format(round((ou_winnings-ou_money) / num_ou_bets, 2)))
+                    except ZeroDivisionError:
+                        pass
+                    stdscr.addstr("OU PROFITS: ${}\n".format(round(ou_winnings - ou_money, 2)))
+                    stdscr.addstr("\n\n")
+                    stdscr.refresh()
+            if self.wantScreen:
+                stdscr.addstr("END BACKTEST\n")
                 try:
-                    stdscr.addstr("SUCCESS RATE: {}%\n".format(round(total_won / total_bet, 3)))
+                    stdscr.addstr("PROFIT MARGIN: {}%\n".format(round((amount_won - amount_bet) / amount_bet, 3)))
                 except ZeroDivisionError:
                     pass
-                stdscr.addstr("\n")
-                stdscr.addstr("BETS MADE: {}\n".format(total_bet))
-                stdscr.addstr("TOTAL BET: ${}\n".format(round(amount_bet, 2)))
-                stdscr.addstr("TOTAL WON: ${}\n".format(round(amount_won - amount_bet, 2)))
-                stdscr.addstr("\n")
-                try:
-                    stdscr.addstr("ML BETS MADE: {}\n".format(num_ml_bets))
-                    stdscr.addstr("ML SUCCESS RATE: {}%\n".format(round(num_ml_success / num_ml_bets, 3)))
-                    stdscr.addstr("ML HOME BET RATE: {}%\n".format(round(home_bets / num_ml_bets, 3)))
-                except ZeroDivisionError:
-                    pass
-                stdscr.addstr("ML PROFITS: ${}\n".format(round(ml_winnings - ml_money, 2)))
-                stdscr.addstr("\n")
-                try:
-                    stdscr.addstr("SPRAD BETS MADE: {}\n".format(num_spread_bets))
-                    stdscr.addstr("SPREAD SUCCESS RATE: {}%\n".format(round(num_spread_success / num_spread_bets, 3)))
-                    stdscr.addstr("HOME SPREAD BET RATE: {}%\n".format(round(home_spread_bets / num_ml_bets, 3)))
-                except ZeroDivisionError:
-                    pass
-                stdscr.addstr("SPREAD PROFITS: ${}\n".format(round(spread_winnings - spread_money, 2)))
-                stdscr.addstr("\n")
-                try:
-                    stdscr.addstr("O/U BETS MADE: {}\n".format(num_ou_bets))
-                    stdscr.addstr("O/U SUCCESS RATE: {}%\n".format(round(num_ou_success / num_ou_bets, 3)))
-                    stdscr.addstr("UNDER BET RATE: {}%\n".format(round(under_bets / num_ml_bets, 3)))
-                except ZeroDivisionError:
-                    pass
-                stdscr.addstr("OU PROFITS: ${}\n".format(round(ou_winnings - ou_money, 2)))
-                stdscr.addstr("\n\n")
                 stdscr.refresh()
-            stdscr.addstr("END BACKTEST\n")
-            try:
-                stdscr.addstr("PROFIT MARGIN: {}%\n".format(round((amount_won - amount_bet) / amount_bet, 3)))
-            except ZeroDivisionError:
-                pass
-            stdscr.refresh()
-            time.sleep(120)
-        except KeyboardInterrupt:
+                time.sleep(120)
+        except (KeyboardInterrupt, Exception):
             pass
-        curses.curs_set(1)
-        curses.echo()
-        curses.nocbreak()
-        curses.endwin()
+        if self.wantScreen:
+            curses.curs_set(1)
+            curses.echo()
+            curses.nocbreak()
+            curses.endwin()
+        return total_bet, (amount_won - amount_bet) / amount_bet
 
 if __name__ == '__main__':
     if len(sys.argv) != 3:
         print("USAGE: python3 backtesting.py [CONFIDENCE_VALUE] [AMOUNT_PER_BET]")
         sys.exit(0)
 
-    Backtest(int(sys.argv[1]), float(sys.argv[2])).test()
+    Backtest(int(sys.argv[1]), float(sys.argv[2]), wantScreen=True).test()
