@@ -11,6 +11,8 @@ This repo is designed for one to be able to gather all of the necessary statisti
 - Python wrapper of MLB API created by Todd Roberts to gather player statistics; link: https://github.com/toddrob99/MLB-StatsAPI/wiki (pip install MLB-StatsAPI)
 - The neural network relies on Tensorflow with Keras, so visit the Google Tensorflow website on how to get the dependencies necessary to create your own model
 
+- Need to add your own API keys to the keys/keys.py file. Name the Twilio key "TWILIO_KEY" and auth token "TWILIO_AUTH"
+
 ## To run the program
 
 1. Run the main.py program to gather statistics necessary

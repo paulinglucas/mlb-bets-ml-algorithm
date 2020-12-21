@@ -27,22 +27,22 @@ def main():
             continue
         print("YEAR: " + str(yr))
 
-        # # get gamepack files located in team_gameData
-        # print("GENERATING GAMEPACK FILES FOR YEAR " + str(yr))
-        # g = GamePackGetter(yr)
-        # g.generateLists()
-        #
-        # # get player data for specific year
-        # print()
-        # print("NOW GATHERING PLAYER STATS FOR YEAR " + str(yr))
-        # p = PlayerGatherer(yr)
-        # p.gatherStats()
-        #
-        # # creates team stats leading up to every mlb game ...
-        # print()
-        # print("TURNING PLAYER STATS INTO TEAM STATISTICS FOR YEAR " + str(yr))
-        # stats = GameStats(yr)
-        # stats.addInAllStats()
+        # get gamepack files located in team_gameData
+        print("GENERATING GAMEPACK FILES FOR YEAR " + str(yr))
+        g = GamePackGetter(yr)
+        g.generateLists()
+
+        # get player data for specific year
+        print()
+        print("NOW GATHERING PLAYER STATS FOR YEAR " + str(yr))
+        p = PlayerGatherer(yr)
+        p.gatherStats()
+
+        # creates team stats leading up to every mlb game ...
+        print()
+        print("TURNING PLAYER STATS INTO TEAM STATISTICS FOR YEAR " + str(yr))
+        stats = GameStats(yr)
+        stats.addInAllStats()
 
         # get odds of every game ...
         print()
