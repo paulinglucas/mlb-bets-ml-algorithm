@@ -3,6 +3,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import sys, os
 import curses
 import time
+import matplotlib.pyplot as plt
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "data_creation")))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -86,6 +87,7 @@ class Backtest:
             for i in range(len(self.LIST)):
                 self.LIST[i] = self.normalize_lst(self.LIST[i])
 
+            ## initialize all variables
             day = 0
             game_num = 0
 
@@ -111,6 +113,11 @@ class Backtest:
             home_spread_bets = 0
             under_bets = 0
 
+            ## data points for the graph
+            munnies = []
+            munnies_made = []
+
+            ## ru through each game in the list, updating profits and wins accordingly
             for game, outcome in zip(self.LIST[180:], self.OUTCOMES[180:]):
                 if self.wantScreen:
                     stdscr.erase()
@@ -118,6 +125,7 @@ class Backtest:
                     game_num += 1
                     if game_num % 15 == 0: day += 1
                     stdscr.addstr("DAY {}\n\n".format(day))
+
                 ## moneyline
                 ml_predict = self.ml_model.predict([game])
 
@@ -172,13 +180,20 @@ class Backtest:
                     ou_money += self.amount_per_bet
                     num_ou_bets += 1
 
+                ## update totals
                 total_bet = num_ml_bets + num_spread_bets + num_ou_bets
                 total_won = num_ml_success + num_spread_success + num_ou_success
                 amount_bet = ml_money + spread_money + ou_money
                 amount_won = ml_winnings + spread_winnings + ou_winnings
+
+                ## add data points to graph
+                munnies .append(round(amount_bet,2))
+                munnies_made.append(round(amount_won - amount_bet,2))
+
+                ## add to curses screen
                 if self.wantScreen:
                     try:
-                        stdscr.addstr("SUCCESS RATE: {}%\n".format(round(total_won / total_bet, 3)))
+                        stdscr.addstr("SUCCESS RATE: {}%\n".format(round((total_won / total_bet)*100, 3)))
                     except ZeroDivisionError:
                         pass
                     stdscr.addstr("\n")
@@ -188,8 +203,8 @@ class Backtest:
                     stdscr.addstr("\n")
                     try:
                         stdscr.addstr("ML BETS MADE: {}\n".format(num_ml_bets))
-                        stdscr.addstr("ML SUCCESS RATE: {}%\n".format(round(num_ml_success / num_ml_bets, 3)))
-                        stdscr.addstr("ML HOME BET RATE: {}%\n".format(round(home_bets / num_ml_bets, 3)))
+                        stdscr.addstr("ML SUCCESS RATE: {}%\n".format(round((num_ml_success / num_ml_bets)*100, 3)))
+                        stdscr.addstr("ML HOME BET RATE: {}%\n".format(round((home_bets / num_ml_bets)*100, 3)))
                         stdscr.addstr("AVG WINNINGS: ${}\n".format(round((ml_winnings-ml_money) / num_ml_bets, 2)))
                     except ZeroDivisionError:
                         pass
@@ -197,8 +212,8 @@ class Backtest:
                     stdscr.addstr("\n")
                     try:
                         stdscr.addstr("SPREAD BETS MADE: {}\n".format(num_spread_bets))
-                        stdscr.addstr("SPREAD SUCCESS RATE: {}%\n".format(round(num_spread_success / num_spread_bets, 3)))
-                        stdscr.addstr("HOME SPREAD BET RATE: {}%\n".format(round(home_spread_bets / num_ml_bets, 3)))
+                        stdscr.addstr("SPREAD SUCCESS RATE: {}%\n".format(round((num_spread_success / num_spread_bets)*100, 3)))
+                        stdscr.addstr("HOME SPREAD BET RATE: {}%\n".format(round((home_spread_bets / num_ml_bets)*100, 3)))
                         stdscr.addstr("AVG WINNINGS: ${}\n".format(round((spread_winnings-spread_money) / num_spread_bets, 2)))
                     except ZeroDivisionError:
                         pass
@@ -206,8 +221,8 @@ class Backtest:
                     stdscr.addstr("\n")
                     try:
                         stdscr.addstr("O/U BETS MADE: {}\n".format(num_ou_bets))
-                        stdscr.addstr("O/U SUCCESS RATE: {}%\n".format(round(num_ou_success / num_ou_bets, 3)))
-                        stdscr.addstr("UNDER BET RATE: {}%\n".format(round(under_bets / num_ml_bets, 3)))
+                        stdscr.addstr("O/U SUCCESS RATE: {}%\n".format(round((num_ou_success / num_ou_bets)*100, 3)))
+                        stdscr.addstr("UNDER BET RATE: {}%\n".format(round((under_bets / num_ml_bets)*100, 3)))
                         stdscr.addstr("AVG WINNINGS: ${}\n".format(round((ou_winnings-ou_money) / num_ou_bets, 2)))
                     except ZeroDivisionError:
                         pass
@@ -217,11 +232,17 @@ class Backtest:
             if self.wantScreen:
                 stdscr.addstr("END BACKTEST\n")
                 try:
-                    stdscr.addstr("PROFIT MARGIN: {}%\n".format(round((amount_won - amount_bet) / amount_bet, 3)))
+                    stdscr.addstr("PROFIT MARGIN: {}%\n".format(round(((amount_won - amount_bet) / amount_bet)*100, 3)))
                 except ZeroDivisionError:
                     pass
                 stdscr.refresh()
-                time.sleep(120)
+
+                ## plot graph
+                plt.plot(munnies, munnies_made)
+                plt.title('Total profit with ${} bets - 2020'.format(self.amount_per_bet))
+                plt.xlabel('Amount bet\nProfit range: {}, {}'.format(min(munnies_made), max(munnies_made)))
+                plt.ylabel('Profit')
+                plt.show()
         except (KeyboardInterrupt, Exception):
             pass
         if self.wantScreen:
@@ -229,7 +250,8 @@ class Backtest:
             curses.echo()
             curses.nocbreak()
             curses.endwin()
-        return total_bet, (amount_won - amount_bet) / amount_bet
+
+        return total_bet, (amount_won - amount_bet) / amount_bet, amount_won - amount_bet
 
 if __name__ == '__main__':
     if len(sys.argv) != 3:
