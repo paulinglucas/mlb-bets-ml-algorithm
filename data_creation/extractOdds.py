@@ -4,6 +4,7 @@
 import statsapi as mlb
 from sys import exit
 import gatherPlayers as p
+import requests, time
 
 import os
 os.chdir(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -146,7 +147,21 @@ class OddsExtractor:
                 gmpk = int(line[:6])
                 if (gamesRemaining % 50 == 0):
                     print("GAMES REMAINING: " + str(gamesRemaining))
-                dict = mlb.boxscore_data(gmpk)
+
+                ## handle connection errors when making requests
+                dict = None
+                for x in range(4):
+                    try:
+                        dict = mlb.boxscore_data(gmpk)
+                        break
+                    except requests.exceptions.ConnectionError:
+                        print("Connection Error for gamepk {}, try #{}".format(gmpk, x))
+                        time.sleep(10)
+                        continue
+                if not dict:
+                    print("Connection Errors. Program Exit")
+                    exit(-1)
+
                 success = self.matchGmpkToLine(gmpk, dict)
                 if not success:
                     self.ODDS[gmpk] = "No odds"

@@ -3,7 +3,7 @@ import statsapi as mlb
 import requests
 import pickle
 from math import floor
-import sys
+import sys, time
 
 import os
 os.chdir(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -34,6 +34,7 @@ class PlayerGatherer:
             return True
         # error: tie
         else:
+            score.append("Tie")
             return False
 
     # gets score of game along with winning team
@@ -42,17 +43,28 @@ class PlayerGatherer:
         homeRuns = int(game['home']['teamStats']['batting']['runs'])
         awayScore = [awayRuns, homeRuns]
         success = self.winOrLose(awayScore)
-
-        # no tie
-        if success:
-            self.SCORES[gmpk] = awayScore
+        self.SCORES[gmpk] = awayScore
 
     # gets dominant batting and throwing hand of each player
     def throwsAndBats(self, id):
         urlBegin = "http://lookup-service-prod.mlb.com/json/named.player_info.bam?sport_code='mlb'&player_id='"
         urlEnd = "'&player_info.col_in=bats&player_info.col_in=throws"
         id = str(id)
-        r = requests.get(urlBegin + id + urlEnd)
+
+        ## handle connection errors
+        r = None
+        for x in range(4):
+            try:
+                r = requests.get(urlBegin + id + urlEnd)
+                break
+            except requests.exceptions.ConnectionError:
+                print("Connection Error for player {}, try #{}".format(id, x))
+                time.sleep(10)
+                continue
+        if not r:
+            print("Connection Errors. Program Exiting")
+            sys.exit(-1)
+
         queries = r.json()['player_info']['queryResults']['row']
         return (queries['throws'], queries['bats'])
 
@@ -92,20 +104,18 @@ class PlayerGatherer:
         for player in playerList:
             p = playerList.get(player)
             pBats = p['stats']['batting']
-            if len(pBats) > 0:
-                if pBats['atBats'] > 0:
-                    self.ALL_BATTERS[p['person']['id']]['gmpksInOrder'].append(gmpk)
-                    playerGames = self.ALL_BATTERS[p['person']['id']]['gmpks']
-                    currentGame = playerGames[gmpk] = p['seasonStats']['batting']
-                    currentGame['gamesPlayed'] = len(playerGames)
+            if len(pBats) > 0 and pBats['atBats'] > 0:
+                self.ALL_BATTERS[p['person']['id']]['gmpksInOrder'].append(gmpk)
+                playerGames = self.ALL_BATTERS[p['person']['id']]['gmpks']
+                currentGame = playerGames[gmpk] = p['seasonStats']['batting']
+                currentGame['gamesPlayed'] = len(playerGames)
             pThrows = p['stats']['pitching']
-            if len(pThrows) > 0:
-                if pThrows['pitchesThrown'] > 0:
-                    self.ALL_PITCHERS[p['person']['id']]['gmpksInOrder'].append(gmpk)
-                    playerGames = self.ALL_PITCHERS[p['person']['id']]['gmpks']
-                    currentGame = playerGames[gmpk] = p['seasonStats']['pitching']
-                    currentGame['inningsPitched'] = self.convertInnings(float(currentGame['inningsPitched']))
-                    currentGame['gamesPlayed'] = len(playerGames)
+            if len(pThrows) > 0 and pThrows['pitchesThrown'] > 0:
+                self.ALL_PITCHERS[p['person']['id']]['gmpksInOrder'].append(gmpk)
+                playerGames = self.ALL_PITCHERS[p['person']['id']]['gmpks']
+                currentGame = playerGames[gmpk] = p['seasonStats']['pitching']
+                currentGame['inningsPitched'] = self.convertInnings(float(currentGame['inningsPitched']))
+                currentGame['gamesPlayed'] = len(playerGames)
 
 
     def ryanicity(self, starter, game, gmpk):
@@ -248,7 +258,21 @@ class PlayerGatherer:
             while(line != ""):
                 gmpk = int(line[:6])
                 # print(gmpk)
-                game = mlb.boxscore_data(gmpk)
+
+                ## handle connection errors when making requests
+                game = None
+                for x in range(4):
+                    try:
+                        game = mlb.boxscore_data(gmpk)
+                        break
+                    except requests.exceptions.ConnectionError:
+                        print("Connection Error for gamepk {}, try #{}".format(gmpk, x))
+                        time.sleep(10)
+                        continue
+                if not game:
+                    print("Connection Errors. Program Exit")
+                    sys.exit(-1)
+
                 self.addScore(game, gmpk)
                 gamesRemaining -= 1
                 if (gamesRemaining % 50 == 0):

@@ -10,7 +10,6 @@ class ListCreator:
     def __init__(self, year):
         self.year = year
         self.DATA = p.extractPickle("all_games.pickle", self.year)
-        self.SCORES = p.extractPickle("scores.pickle", self.year)
         try:
             self.ODDS = p.extractPickle("all_odds.pickle", self.year)
         except FileNotFoundError:

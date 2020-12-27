@@ -1,6 +1,5 @@
 import gatherPlayers as p
 import getGamepks as gm
-import statsapi as mlb
 from enum import IntEnum
 
 import os
@@ -79,8 +78,6 @@ class Last10:
         batStats = [0,0,0,0,0]
         self.addBatterStats(batStats, gmpk, batters)
         return batStats
-
-
 
 """
     team pickle file

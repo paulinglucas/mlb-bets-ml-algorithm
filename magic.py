@@ -1,6 +1,9 @@
-# winner: 58-63% accurate
-# spread: 50-58% accurate
-# over/under: 55-64% accurate
+## BACKTESTED WITH 2016 SEASON
+# After betting on all bets with odds greater than -110
+
+# winner: 70.753% accurate
+# spread: 63.263% accurate
+# over/under: 56.839% accurate
 
 # DIVIDE FOR NORMALIZATION:
 # OPS: 4

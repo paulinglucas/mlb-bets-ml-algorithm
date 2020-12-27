@@ -3,6 +3,7 @@ import getGamepks as gm
 import statsapi as mlb
 from enum import IntEnum
 from last10 import Last10
+import sys, requests, time
 
 import os
 os.chdir(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -198,7 +199,20 @@ class GameStats:
     def gatherGameStats(self, gmpk):
         stats = {"away": [], "home": [], "outcome": []}
         self.DATA['gmpks'][gmpk] = stats
-        game = mlb.boxscore_data(gmpk)
+
+        ## handle connection errors when making requests
+        game = None
+        for x in range(4):
+            try:
+                game = mlb.boxscore_data(gmpk)
+                break
+            except requests.exceptions.ConnectionError:
+                print("Connection Error for gamepk {}, try #{}".format(gmpk, x))
+                time.sleep(10)
+                continue
+        if not game:
+            print("Connection Errors. Program Exit")
+            sys.exit(-1)
 
         teams = ['away', 'home']
         away = True
@@ -208,6 +222,11 @@ class GameStats:
             # getGamepk for lineup and bullpen
             prevGmpk = self.getPreviousTeamGame(currTeamName, gmpk)
             pitcher = int(game[team]['pitchers'][0])
+
+            ## data anomaly
+            if gmpk == 447959 and pitcher == 592716:
+                pitcher = int(game[team]['pitchers'][1])
+                
             lineup = game[team]['batters']
 
             # check if pitcher has pitched in previous game

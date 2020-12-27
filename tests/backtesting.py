@@ -16,8 +16,8 @@ from magic import win_loss, spreads_loss, ou_loss, loss_accuracy
 
 class Backtest:
     def __init__(self, confidence, amount_per_bet, wantScreen):
-        self.LIST = extractPickle('twoD_list.pickle', 2020)
-        self.OUTCOMES = extractPickle('outcome_vectors.pickle', 2020)
+        self.LIST = extractPickle('twoD_list.pickle', 2016)[180:]
+        self.OUTCOMES = extractPickle('outcome_vectors.pickle', 2016)[180:]
         self.ml_model = tf.keras.models.load_model('models/win_loss.hdf5', custom_objects={'win_loss': win_loss})
         self.spread_model = tf.keras.models.load_model('models/spreads_loss.hdf5', custom_objects={'spreads_loss': spreads_loss})
         self.ou_model = tf.keras.models.load_model('models/ou_loss.hdf5', custom_objects={'ou_loss': ou_loss})
@@ -118,7 +118,7 @@ class Backtest:
             munnies_made = []
 
             ## ru through each game in the list, updating profits and wins accordingly
-            for game, outcome in zip(self.LIST[180:], self.OUTCOMES[180:]):
+            for game, outcome in zip(self.LIST, self.OUTCOMES):
                 if self.wantScreen:
                     stdscr.erase()
                     ## update days in terminal
