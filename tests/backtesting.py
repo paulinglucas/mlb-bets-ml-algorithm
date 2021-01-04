@@ -172,7 +172,7 @@ class Backtest:
                     ou_money += self.amount_per_bet
                     num_ou_bets += 1
 
-                if ml_predict[0][1] > self.confidence:
+                if ou_predict[0][1] > self.confidence:
                     under_bets += 1
                     if outcome[5] == 1:
                         num_ou_success += 1
@@ -205,7 +205,7 @@ class Backtest:
                         stdscr.addstr("ML BETS MADE: {}\n".format(num_ml_bets))
                         stdscr.addstr("ML SUCCESS RATE: {}%\n".format(round((num_ml_success / num_ml_bets)*100, 3)))
                         stdscr.addstr("ML HOME BET RATE: {}%\n".format(round((home_bets / num_ml_bets)*100, 3)))
-                        stdscr.addstr("AVG WINNINGS: ${}\n".format(round((ml_winnings-ml_money) / num_ml_bets, 2)))
+                        stdscr.addstr("AVG WINNINGS: ${}\n".format(round((ml_winnings-(num_ml_success*self.amount_per_bet)) / num_ml_success, 2)))
                     except ZeroDivisionError:
                         pass
                     stdscr.addstr("ML PROFITS: ${}\n".format(round(ml_winnings - ml_money, 2)))
@@ -214,7 +214,7 @@ class Backtest:
                         stdscr.addstr("SPREAD BETS MADE: {}\n".format(num_spread_bets))
                         stdscr.addstr("SPREAD SUCCESS RATE: {}%\n".format(round((num_spread_success / num_spread_bets)*100, 3)))
                         stdscr.addstr("HOME SPREAD BET RATE: {}%\n".format(round((home_spread_bets / num_ml_bets)*100, 3)))
-                        stdscr.addstr("AVG WINNINGS: ${}\n".format(round((spread_winnings-spread_money) / num_spread_bets, 2)))
+                        stdscr.addstr("AVG WINNINGS: ${}\n".format(round((spread_winnings-(num_spread_success*self.amount_per_bet)) / num_spread_success, 2)))
                     except ZeroDivisionError:
                         pass
                     stdscr.addstr("SPREAD PROFITS: ${}\n".format(round(spread_winnings - spread_money, 2)))
@@ -223,7 +223,7 @@ class Backtest:
                         stdscr.addstr("O/U BETS MADE: {}\n".format(num_ou_bets))
                         stdscr.addstr("O/U SUCCESS RATE: {}%\n".format(round((num_ou_success / num_ou_bets)*100, 3)))
                         stdscr.addstr("UNDER BET RATE: {}%\n".format(round((under_bets / num_ml_bets)*100, 3)))
-                        stdscr.addstr("AVG WINNINGS: ${}\n".format(round((ou_winnings-ou_money) / num_ou_bets, 2)))
+                        stdscr.addstr("AVG WINNINGS: ${}\n".format(round((ou_winnings-(num_ou_success*self.amount_per_bet)) / num_ou_success, 2)))
                     except ZeroDivisionError:
                         pass
                     stdscr.addstr("OU PROFITS: ${}\n".format(round(ou_winnings - ou_money, 2)))
@@ -237,11 +237,18 @@ class Backtest:
                     pass
                 stdscr.refresh()
 
+                ##drawdown
+                i = np.argmax(np.maximum.accumulate(munnies_made) - munnies_made) # end of the period
+                j = np.argmax(munnies_made[:i]) # start of period
+
                 ## plot graph
                 plt.plot(munnies, munnies_made)
                 plt.title('Total profit with ${} bets - 2020'.format(self.amount_per_bet))
-                plt.xlabel('Amount bet\nProfit range: {}, {}'.format(min(munnies_made), max(munnies_made)))
+                plt.xlabel('Amount bet\nProfit range: {}, {}\nMax Drawdown: ${}'.format(min(munnies_made), max(munnies_made), round(munnies_made[i] - munnies_made[j], 2)))
                 plt.ylabel('Profit')
+                plt.plot([munnies[i], munnies[j]], [munnies_made[i], munnies_made[j]], 'o', color='Red', markersize=4)
+
+                plt.tight_layout()
                 plt.show()
         except (KeyboardInterrupt, Exception):
             pass

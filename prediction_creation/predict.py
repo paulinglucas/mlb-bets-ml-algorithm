@@ -20,7 +20,9 @@ from getGamepks import teams_id
 from datetime import date as d
 from datetime import timedelta
 
-CONFIDENCE_VALUE = -350
+from send_tweet import send_twt
+
+CONFIDENCE_VALUE = -10000
 
 # normalize data
 def normalize_lst(lst):
@@ -86,7 +88,11 @@ def parsePrediction(predict):
     return str(away) + "," + str(home)
 
 # is prediction above our confidence threshold?
-def checkIfConfident(pred):
+def checkIfConfident(pred, txtOrTwt):
+    if txtOrTwt == 'Text':
+        CONFIDENCE_VALUE = -200
+    elif txtOrTwt == 'Tweet':
+        CONFIDENCE_VALUE = -350
     pred = pred.strip().split(",")
     if pred[0] != "---":
         if int(pred[0]) < CONFIDENCE_VALUE:
@@ -97,7 +103,7 @@ def checkIfConfident(pred):
     return False
 
 ## print predictions to console, send text for confident values
-def main(send_text=False):
+def main(send_text=False, send_twt=False):
                                         #models/ml.h5
     ml_model = tf.keras.models.load_model('models/win_loss.hdf5', custom_objects={'win_loss': win_loss})
     spread_model = tf.keras.models.load_model('models/spreads_loss.hdf5', custom_objects={'spreads_loss': spreads_loss})
@@ -140,9 +146,15 @@ def main(send_text=False):
             print(ou_out)
             print()
 
-            ml_confident = checkIfConfident(ml_out)
-            spread_confident = checkIfConfident(spread_out)
-            ou_confident = checkIfConfident(ou_out)
+            ## text to me
+            ml_confident = checkIfConfident(ml_out, "Text")
+            spread_confident = checkIfConfident(spread_out, "Text")
+            ou_confident = checkIfConfident(ou_out, "Text")
+
+            ## twitter API
+            ml_confident_tweet = checkIfConfident(ml_out, "Tweet")
+            spread_confident_tweet = checkIfConfident(spread_out, "Tweet")
+            ou_confident_tweet = checkIfConfident(ou_out, "Tweet")
 
             ## only send text if odds are greater than 77% chance either way
             if str(g['game_id']) not in texted_games and send_text and (ml_confident or spread_confident or ou_confident):
@@ -157,6 +169,22 @@ def main(send_text=False):
                 if ou_confident:
                     txt_buf += "o/u: " + str(ou_out) + '\n\n'
 
+            ## for twitter API
+            if str(g['game_id']) not in texted_games and send_twt and (ml_confident_tweet or spread_confident_tweet or ou_confident_tweet):
+                f.write(str(g['game_id']) + '\n')
+                twt_buf = ""
+                home = teams_id[g['home_id']]
+                away = teams_id[g['away_id']]
+                twt_buf += away + " vs " + home + '\n'
+                if ml_confident:
+                    twt_buf += "ml: " + str(ml_out) + '\n'
+                if spread_confident:
+                    twt_buf += "spr: " + str(spread_out) + '\n'
+                if ou_confident:
+                    twt_buf += "o/u: " + str(ou_out) + '\n\n'
+                send_twt(txt_buf)
+
+
         if send_text:
             try:
                 send_sms(txt_buf)
@@ -164,6 +192,6 @@ def main(send_text=False):
                 print("No odds big enough to send text via Twilio")
 
 if __name__ == "__main__":
-    main(send_text=True)
+    main(send_text=True, send_twt=True)
 
 # new_model.summary()
