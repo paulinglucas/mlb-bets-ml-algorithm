@@ -7,7 +7,7 @@ def main():
     os.system('clear')
     for i in range(-150, -800, -50):
         print("BACKTESTING VALUE {}".format(i))
-        bets, prof_margin, prof = Backtest(i, 20, wantScreen=False).test()
+        bets, prof_margin, prof = Backtest(i, 20, 1, wantScreen=False).test()
         dic[i] = (bets, prof_margin, prof)
 
     for k in dic:

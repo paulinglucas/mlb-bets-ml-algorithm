@@ -119,7 +119,20 @@ def main(send_text=False, send_twt=False):
 
         day = d.today() #- timedelta(days=1)
         dt = day.strftime('%Y-%m-%d')
-        gm = mlb.schedule(date=dt)
+
+        ## handle connection errors
+        gm = None
+        for x in range(4):
+            try:
+                gm = mlb.schedule(date=dt)
+                break
+            except requests.exceptions.ConnectionError:
+                print("Connection Error for schedule")
+                time.sleep(10)
+                continue
+        if not gm:
+            print("Connection Errors. Program Exiting")
+            sys.exit(-1)
 
         print("PREDICTIONS FOR DATE {}".format(dt))
         print()

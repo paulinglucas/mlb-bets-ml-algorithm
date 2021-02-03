@@ -32,7 +32,21 @@ class Predictor:
             name = name[1] + " " + name[2] + ", " + name[0]
         else:
             name = name[1] + ", " + name[0]
-        player = mlb.lookup_player(name, season=self.year)
+
+        ## handle connection errors
+        player = None
+        for x in range(4):
+            try:
+                player = mlb.lookup_player(name, season=self.year)
+                break
+            except requests.exceptions.ConnectionError:
+                print("Connection Error for looking up player {}".format(name))
+                time.sleep(10)
+                continue
+        if not player:
+            print("Connection Errors. Program Exiting")
+            sys.exit(-1)
+
         if player == []:
             return None
 
@@ -88,7 +102,20 @@ class Predictor:
         batStats[BatterStats.LHP] = lhpPercent
 
     def getLineups(self, g):
-        data = mlb.boxscore_data(g['game_id'])
+        ## handle connection errors
+        data = None
+        for x in range(4):
+            try:
+                data = mlb.boxscore_data(g['game_id'])
+                break
+            except requests.exceptions.ConnectionError:
+                print("Connection Error for gamepack {}".format(g['game_id']))
+                time.sleep(10)
+                continue
+        if not data:
+            print("Connection Errors. Program Exiting")
+            sys.exit(-1)
+
         try:
             lineups = {'home': teams_id[g['home_id']],
                                'away': teams_id[g['away_id']],

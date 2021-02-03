@@ -15,7 +15,7 @@ import numpy as np
 from magic import win_loss, spreads_loss, ou_loss, loss_accuracy
 
 class Backtest:
-    def __init__(self, confidence, amount_per_bet, wantScreen):
+    def __init__(self, confidence, amount_per_bet, double_yes, wantScreen):
         self.LIST = extractPickle('twoD_list.pickle', 2016)[180:]
         self.OUTCOMES = extractPickle('outcome_vectors.pickle', 2016)[180:]
         self.ml_model = tf.keras.models.load_model('models/win_loss.hdf5', custom_objects={'win_loss': win_loss})
@@ -24,6 +24,7 @@ class Backtest:
         self.confidence = self.convertOddsToPercent(confidence)
         self.amount_per_bet = amount_per_bet
         self.wantScreen = wantScreen
+        self.double_val = double_yes
 
     # normalize data
     def normalize_lst(self, lst):
@@ -90,6 +91,7 @@ class Backtest:
             ## initialize all variables
             day = 0
             game_num = 0
+            double_val = self.double_val
 
             amount_bet = 0
             amount_won = 0
@@ -132,16 +134,16 @@ class Backtest:
                 if ml_predict[0][0] > self.confidence:
                     if outcome[0] == 1:
                         num_ml_success += 1
-                        ml_winnings += self.amount_per_bet*outcome[6]
-                    ml_money += self.amount_per_bet
+                        ml_winnings += self.amount_per_bet*outcome[6]*double_val
+                    ml_money += self.amount_per_bet*double_val
                     num_ml_bets += 1
 
                 if ml_predict[0][1] > self.confidence:
                     home_bets += 1
                     if outcome[1] == 1:
                         num_ml_success += 1
-                        ml_winnings += self.amount_per_bet*outcome[7]
-                    ml_money += self.amount_per_bet
+                        ml_winnings += self.amount_per_bet*outcome[7]*double_val
+                    ml_money += self.amount_per_bet*double_val
                     num_ml_bets += 1
 
                 ## spread
@@ -261,8 +263,8 @@ class Backtest:
         return total_bet, (amount_won - amount_bet) / amount_bet, amount_won - amount_bet
 
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        print("USAGE: python3 backtesting.py [CONFIDENCE_VALUE] [AMOUNT_PER_BET]")
+    if len(sys.argv) != 4:
+        print("USAGE: python3 backtesting.py [CONFIDENCE_VALUE] [AMOUNT_PER_BET] [DOUBLE MONEYLINE BET (1 for no, 2 for yes)]")
         sys.exit(0)
 
-    Backtest(int(sys.argv[1]), float(sys.argv[2]), wantScreen=True).test()
+    Backtest(int(sys.argv[1]), float(sys.argv[2]), int(sys.argv[3]), wantScreen=True).test()
