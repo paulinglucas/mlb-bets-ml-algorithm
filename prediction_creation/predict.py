@@ -90,7 +90,7 @@ def parsePrediction(predict):
 # is prediction above our confidence threshold?
 def checkIfConfident(pred, txtOrTwt):
     if txtOrTwt == 'Text':
-        CONFIDENCE_VALUE = -200
+        CONFIDENCE_VALUE = -150
     elif txtOrTwt == 'Tweet':
         CONFIDENCE_VALUE = -350
     pred = pred.strip().split(",")
