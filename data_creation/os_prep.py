@@ -2,13 +2,14 @@ import os
 import errno
 import getGamepks as gm
 
-os.chdir(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+os.chdir(os.path.abspath(os.path.join(os.path.dirname(__file__))))
 
-CURR_YEAR = 2020
+CURR_YEAR = 2021
 
 def prep():
+    print(os.getcwd())
     # need year direcotries made for data
-    for year in range(2014,CURR_YEAR+1):
+    for year in range(2021,CURR_YEAR+1):
         filename = "pickle_files/" + str(year) + "/"
         filename2 = "team_gameData/" + str(year) + "/AllGamesOnce.txt"
         if not os.path.exists(os.path.dirname(filename)):

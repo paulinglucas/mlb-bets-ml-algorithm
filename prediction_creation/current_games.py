@@ -10,8 +10,9 @@ import createUsableList as lst
 import statsapi as mlb
 from datetime import date as d
 from datetime import timedelta
+from send_sms import send_confirmation
 
-YEAR = 2020
+YEAR = 2021
 
 # check if game has already been accounted for
 def isGameInFile(tm, gmpk):
@@ -23,7 +24,21 @@ def isGameInFile(tm, gmpk):
 
 # is game a regular/postseason game, that isnt postponed?
 def invalidGame(gmpk, year):
-    dict = mlb.schedule(game_id=gmpk)
+    dict = None
+    for x in range(4):
+        try:
+            dict = mlb.schedule(game_id=gmpk)
+            break
+        except requests.exceptions.ConnectionError:
+            print("Connection Error for looking up game {}".format(gmpk))
+            time.sleep(10)
+            continue
+    if not dict:
+        print("Connection Errors. Program Exiting")
+        send_confirmation("Failed to update data")
+        sys.exit(-1)
+
+
     for gm in dict:
         if 'Scheduled' in gm['status']:
             return True
@@ -38,7 +53,20 @@ def setUpGamepks(year):
     gmpks = {}
     yesterday = d.today() - timedelta(days=1)
     dt = yesterday.strftime('%Y-%m-%d')
-    gm = mlb.schedule(start_date='2020-09-02', end_date=dt)
+
+    gm = None
+    for x in range(4):
+        try:
+            gm = mlb.schedule(start_date='2020-09-02', end_date=dt)
+            break
+        except requests.exceptions.ConnectionError:
+            print("Connection Error for looking up schedule")
+            time.sleep(10)
+            continue
+    if not gm:
+        print("Connection Errors. Program Exiting")
+        send_confirmation("Failed to update data")
+        sys.exit(-1)
 
     for g in gm:
         gmpk = g['game_id']
@@ -50,7 +78,20 @@ def setUpGamepks(year):
             if isGameInFile(tm, gmpk) or invalidGame(gmpk, year):
                 continue
 
-            game = mlb.boxscore_data(gmpk)
+            game = None
+            for x in range(4):
+                try:
+                    game = mlb.boxscore_data(gmpk)
+                    break
+                except requests.exceptions.ConnectionError:
+                    print("Connection Error for looking up game {}".format(gmpk))
+                    time.sleep(10)
+                    continue
+            if not game:
+                print("Connection Errors. Program Exiting")
+                send_confirmation("Failed to update data")
+                sys.exit(-1)
+
             with open("team_gameData/2020/" + get.teams_id[tm].replace(" ", "_") + ".txt", "a") as f:
                 awayOrHome = 'Home'
                 if game['teamInfo']['away']['teamName'] == get.teams_id[tm]:
@@ -91,6 +132,8 @@ def main():
     # create lists to load into machine learning algorithm
     l = lst.ListCreator(YEAR)
     l.addToList()
+
+    send_confirmation("Successfully updated data")
 
 if __name__ == "__main__":
     main()

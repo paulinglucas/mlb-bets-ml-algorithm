@@ -16,8 +16,8 @@ from magic import win_loss, spreads_loss, ou_loss, loss_accuracy
 
 class Backtest:
     def __init__(self, confidence, amount_per_bet, double_yes, wantScreen):
-        self.LIST = extractPickle('twoD_list.pickle', 2016)[180:]
-        self.OUTCOMES = extractPickle('outcome_vectors.pickle', 2016)[180:]
+        self.LIST = extractPickle('twoD_list.pickle', 2019)[180:]
+        self.OUTCOMES = extractPickle('outcome_vectors.pickle', 2019)[180:]
         self.ml_model = tf.keras.models.load_model('models/win_loss.hdf5', custom_objects={'win_loss': win_loss})
         self.spread_model = tf.keras.models.load_model('models/spreads_loss.hdf5', custom_objects={'spreads_loss': spreads_loss})
         self.ou_model = tf.keras.models.load_model('models/ou_loss.hdf5', custom_objects={'ou_loss': ou_loss})
@@ -207,7 +207,7 @@ class Backtest:
                         stdscr.addstr("ML BETS MADE: {}\n".format(num_ml_bets))
                         stdscr.addstr("ML SUCCESS RATE: {}%\n".format(round((num_ml_success / num_ml_bets)*100, 3)))
                         stdscr.addstr("ML HOME BET RATE: {}%\n".format(round((home_bets / num_ml_bets)*100, 3)))
-                        stdscr.addstr("AVG WINNINGS: ${}\n".format(round((ml_winnings-(num_ml_success*self.amount_per_bet)) / num_ml_success, 2)))
+                        stdscr.addstr("AVG WINNINGS: ${}\n".format(round((ml_winnings-(num_ml_success*self.amount_per_bet*self.double_val)) / num_ml_success, 2)))
                     except ZeroDivisionError:
                         pass
                     stdscr.addstr("ML PROFITS: ${}\n".format(round(ml_winnings - ml_money, 2)))
@@ -245,7 +245,7 @@ class Backtest:
 
                 ## plot graph
                 plt.plot(munnies, munnies_made)
-                plt.title('Total profit with ${} bets - 2020'.format(self.amount_per_bet))
+                plt.title('Total profit with ${} bets - 2019'.format(self.amount_per_bet))
                 plt.xlabel('Amount bet\nProfit range: {}, {}\nMax Drawdown: ${}'.format(min(munnies_made), max(munnies_made), round(munnies_made[i] - munnies_made[j], 2)))
                 plt.ylabel('Profit')
                 plt.plot([munnies[i], munnies[j]], [munnies_made[i], munnies_made[j]], 'o', color='Red', markersize=4)

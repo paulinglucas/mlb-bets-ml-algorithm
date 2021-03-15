@@ -8,6 +8,7 @@ from getGamepks import teams_id
 import gatherPlayers as p
 import statsapi as mlb
 from enum import IntEnum
+from send_sms import send_confirmation
 
 class BatterStats(IntEnum):
     BA = 0      # team BA
@@ -45,6 +46,7 @@ class Predictor:
                 continue
         if not player:
             print("Connection Errors. Program Exiting")
+            send_confirmation("Failed to get prediction")
             sys.exit(-1)
 
         if player == []:
@@ -114,6 +116,7 @@ class Predictor:
                 continue
         if not data:
             print("Connection Errors. Program Exiting")
+            send_confirmation("Failed to get prediction")
             sys.exit(-1)
 
         try:

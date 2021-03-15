@@ -14,7 +14,7 @@ from tensorflow import keras
 import numpy as np
 from createPrediction import Predictor
 import statsapi as mlb
-from send_sms import send_sms
+import send_sms
 from getGamepks import teams_id
 
 from datetime import date as d
@@ -23,6 +23,8 @@ from datetime import timedelta
 from send_tweet import send_twt
 
 CONFIDENCE_VALUE = -10000
+TEXT_CONFIDENCE = -150
+TWEET_CONFIDENCE = -300
 
 # normalize data
 def normalize_lst(lst):
@@ -90,9 +92,9 @@ def parsePrediction(predict):
 # is prediction above our confidence threshold?
 def checkIfConfident(pred, txtOrTwt):
     if txtOrTwt == 'Text':
-        CONFIDENCE_VALUE = -150
+        CONFIDENCE_VALUE = TEXT_CONFIDENCE
     elif txtOrTwt == 'Tweet':
-        CONFIDENCE_VALUE = -350
+        CONFIDENCE_VALUE = TWEET_CONFIDENCE
     pred = pred.strip().split(",")
     if pred[0] != "---":
         if int(pred[0]) < CONFIDENCE_VALUE:
@@ -132,6 +134,7 @@ def main(send_text=False, send_twt=False):
                 continue
         if not gm:
             print("Connection Errors. Program Exiting")
+            send_sms.send_confirmation("Failed to update data")
             sys.exit(-1)
 
         print("PREDICTIONS FOR DATE {}".format(dt))
@@ -200,7 +203,7 @@ def main(send_text=False, send_twt=False):
 
         if send_text:
             try:
-                send_sms(txt_buf)
+                send_sms.send_pred(txt_buf)
             except twilio.base.exceptions.TwilioRestException:
                 print("No odds big enough to send text via Twilio")
 
