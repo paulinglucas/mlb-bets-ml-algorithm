@@ -142,3 +142,4 @@ tiff.py
 models
 send_sms.py
 keys.py
+*.json
