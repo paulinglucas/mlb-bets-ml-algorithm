@@ -15,6 +15,7 @@ import numpy as np
 from createPrediction import Predictor
 import statsapi as mlb
 import send_sms
+import populate_sheet
 from getGamepks import teams_id
 
 from datetime import date as d
@@ -198,12 +199,13 @@ def main(send_text=False, send_twt=False):
                     twt_buf += "spr: " + str(spread_out) + '\n'
                 if ou_confident:
                     twt_buf += "o/u: " + str(ou_out) + '\n\n'
-                send_twt(txt_buf)
+                send_twt(twt_buf)
 
 
         if send_text:
             try:
                 send_sms.send_pred(txt_buf)
+                populate_sheet.updateSpreadsheets(TEXT_CONFIDENCE, TWEET_CONFIDENCE, txt_buf)
             except twilio.base.exceptions.TwilioRestException:
                 print("No odds big enough to send text via Twilio")
 

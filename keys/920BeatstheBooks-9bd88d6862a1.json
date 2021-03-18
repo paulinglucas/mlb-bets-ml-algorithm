@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "beats-the-books",
+  "private_key_id": "9bd88d6862a12cb2506eee4333464e40f2f6014b",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQCYIkSvlYQKi8VE\nbecgTRQaFhJHrUFdHKu1JDGbsiWtDGlLqggRO4E75kL/y/W+ClidOF/4SIpHQ8HH\nnKH5kK/n2AFerG6RY7yBUyMI4bKdTYXGT4Jytkgmog4KynUxQStS4HSBsalxkuin\n469FAVNbr726k8nAbeZa4RQejJeJspWkHbh/1GTKum2Dffqoxg9P7uuwkT7LnfmR\nkvdNTPHdVQbwulcyqGu60HjkOHD6bm7mDauViXV+n/Ol65gyn2TsP76LoO37Zxz7\nXZwOI6aSVxeryJNSwj3Q7fyaj+yTZ7AAyBUqR/yZbcAGbL8/ekmrmGLFcVSv+WBv\nikgukdXdAgMBAAECggEAEW65Jibg1tXbSJMQt+/Sd4bDQ3lZPb0qTnsTlX6yuINC\nkYwDQ/jolHTh2oPZkz7blpsTdtTWcNdqc2AXDgzZS0ds02y4zWol+z+2ilmqaOyt\ngTgyf3M0Y1Dl1ltgAGvc9gXdnnroKqkl2w8eUgRBNAa4RpKRZ2kbIJtyqGl9zSZU\nqr8GuPi0HYDlkzdk+nXv8BwHtavoTGDYILrZtD9B3Gcd9BiebbBjvZFiHk1imPbW\nPd+o+Q3xTHFYqz05RXceSvQbb8Fmk2xMvGanQc6ks4pkX2r7RGu5Ow4Guf7guRrV\nrpcF5G7Gl0OyDh+dH1DdnuQPqxYQBGOffdzFe49BVQKBgQDG0sAanakOD364Y0H9\nnvTe6ckHXvjbY+0g22Tw2E5St1WCILuckw33jW782ieaQTExQLs67IoKPRzx+OHX\nqDurZNdzd4CVGMXzi3OGIQx7eZKmH0pF2fhwb1h5y+2NNpXYyKMk1xIyFMzbwupA\ntSrxA6VtE2QHbdwvJ3G7AjQkMwKBgQDD4kXrhDc7qEd0ToddZCsUoDzIi8mdSluS\nWrIp5TIMKqKRTf4ex2oibq41LZ1+uhlwnoqluW6EAMbXNAwQbDIfHOYDViPtOcFB\n3eKHirBtpPN9aDLlcKQoH5QEu4MiLDZAqoNN8/yt3skBBMMwBf9/73IDvD4Uh4su\nKbaZ0g+NrwKBgQCxB1u3FyQ8eb16Dh7m5M7hYEX3gy+PoJS1ycNB00dBzS2ctOp3\nilRIVC07hD740Q0s7pcG6zAp16pbJSBptciTXjGcBQ5/MtSmekc9aVXE50WVFo06\nTs8vxWSA5fu43Z5krJjep4TzBKQ3FIEhZm46tOVpjndlSgNgFP3l5htpEwKBgFC0\nE+yRn5Pzo+TWScz/bQRldEWH2jv0m7+zoD3EkRcUJcBJ6s3RiPfAtANy1LWWhM6y\ncxsOR+sYytN1PRczDH9nD5kGT2z4Y5f4i9EeIcw6rprXaEjBXNCvGfPNMZzNrFh+\nJ/Tg9hTIefXyeVx6zCZwh3/keYtJwNz3EKVVN1U/AoGAQDNrl3E4MV2P16erSJdc\ns2aHOoyuoORjP1xv9hR0xRMeNJ+WKBlERTx8i02UQ6sOmoHBV/DWgZNbJl6Xnk2G\nYn+RztgRndXgzpV7A61qe/kMwOXVqF34D7A8KmctY6s3bO385InWtxUtbQZqxYdQ\n/QPt0n9Py/b4Mnv6lCywvlU=\n-----END PRIVATE KEY-----\n",
+  "client_email": "the-920-beats-books@beats-the-books.iam.gserviceaccount.com",
+  "client_id": "112916488316343823670",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/the-920-beats-books%40beats-the-books.iam.gserviceaccount.com"
+}
