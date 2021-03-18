@@ -205,7 +205,21 @@ def main(send_text=False, send_twt=False):
         if send_text:
             try:
                 send_sms.send_pred(txt_buf)
-                populate_sheet.updateSpreadsheets(TEXT_CONFIDENCE, TWEET_CONFIDENCE, txt_buf)
+                
+                success = None
+                for x in range(4):
+                    try:
+                        success = populate_sheet.updateSpreadsheets(TEXT_CONFIDENCE, TWEET_CONFIDENCE, txt_buf)
+                        break
+                    except requests.exceptions.ConnectionError:
+                        print("Connection Error for updating spreadsheet")
+                        time.sleep(10)
+                        continue
+                if not success:
+                    print("Connection Errors. Program Exiting")
+                    send_sms.send_confirmation("Failed to update spreadsheet")
+                    sys.exit(-1)
+
             except twilio.base.exceptions.TwilioRestException:
                 print("No odds big enough to send text via Twilio")
 

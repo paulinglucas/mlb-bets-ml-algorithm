@@ -76,6 +76,8 @@ def updateDate():
         sheet_instance.update_cell(next_available_row(sheet_instance), 1, datetime.today().strftime('%m/%d'))
         my_sheet_instance.update_cell(next_available_row(my_sheet_instance), 1, datetime.today().strftime('%m/%d'))
 
+    return 1
+
 
 def updateSpreadsheets(my_conf, their_conf, msg):
     # define the scope
