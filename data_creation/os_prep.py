@@ -11,17 +11,20 @@ def prep():
     # need year direcotries made for data
     for year in range(2021,CURR_YEAR+1):
         filename = "pickle_files/" + str(year) + "/"
-        filename2 = "team_gameData/" + str(year) + "/AllGamesOnce.txt"
+        all_games_filename = "team_gameData/" + str(year) + "/AllGamesOnce.txt"
+        text_filename = "team_gameData/" + str(year) + "/TextedGames.txt"
         if not os.path.exists(os.path.dirname(filename)):
             try:
                 os.makedirs(os.path.dirname(filename))
             except OSError as exc: # Guard against race condition
                 if exc.errno != errno.EEXIST:
                     raise
-        open(filename2, "a").close()
+        open(all_games_filename, "a").close()
+        open(text_filename, "a").close()
         for team in gm.teams_list:
             filename3 = "team_gameData/" + str(year) + "/" + team.replace(" ", "_") + ".txt"
             open(filename3, 'a').close()
+
 
     # two outlier directories necessary to make this work
     if not os.path.exists(os.path.dirname("models/")):

@@ -27,6 +27,8 @@ CONFIDENCE_VALUE = -10000
 TEXT_CONFIDENCE = -150
 TWEET_CONFIDENCE = -300
 
+YEAR = 2021
+
 # normalize data
 def normalize_lst(lst):
     lst[0][0]  = round(lst[0][0], 3) # OPS
@@ -116,7 +118,7 @@ def main(send_text=False, send_twt=False):
     print()
 
     # for texted games
-    with open('team_gameData/2020/TextedGames.txt', 'r+') as f:
+    with open('team_gameData/{}/TextedGames.txt'.format(YEAR), 'r+') as f:
         texted_games = f.read().split('\n')
         txt_buf = ''
 
@@ -143,7 +145,7 @@ def main(send_text=False, send_twt=False):
         print()
 
         for g in gm:
-            pred = Predictor(2020)
+            pred = Predictor(YEAR)
             lst = [pred.inputGameStats(g)]
             if lst == [-1]: continue
             lst = normalize_lst(lst)

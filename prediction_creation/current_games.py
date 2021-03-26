@@ -16,7 +16,7 @@ YEAR = 2021
 
 # check if game has already been accounted for
 def isGameInFile(tm, gmpk):
-    with open("team_gameData/2020/" + get.teams_id[tm].replace(" ", "_") + ".txt", "r") as fh:
+    with open("team_gameData/{}/".format(YEAR) + get.teams_id[tm].replace(" ", "_") + ".txt", "r") as fh:
         for line in fh:
             if str(gmpk) == line[5:11]:
                 return True
@@ -48,16 +48,17 @@ def invalidGame(gmpk, year):
             return True
     return False
 
-# add gamepacks to year 2020
+# add gamepacks to current year
 def setUpGamepks(year):
     gmpks = {}
     yesterday = d.today() - timedelta(days=1)
+    buffer = d.today() - timedelta(days=4)
     dt = yesterday.strftime('%Y-%m-%d')
 
     gm = None
     for x in range(4):
         try:
-            gm = mlb.schedule(start_date='2020-09-02', end_date=dt)
+            gm = mlb.schedule(start_date=buffer, end_date=dt)
             break
         except requests.exceptions.ConnectionError:
             print("Connection Error for looking up schedule")
@@ -92,7 +93,7 @@ def setUpGamepks(year):
                 send_confirmation("Failed to update data")
                 sys.exit(-1)
 
-            with open("team_gameData/2020/" + get.teams_id[tm].replace(" ", "_") + ".txt", "a") as f:
+            with open("team_gameData/{}/".format(YEAR) + get.teams_id[tm].replace(" ", "_") + ".txt", "a") as f:
                 awayOrHome = 'Home'
                 if game['teamInfo']['away']['teamName'] == get.teams_id[tm]:
                     awayOrHome = 'Away'
@@ -108,7 +109,7 @@ def setUpGamepks(year):
                 else: continue
 
     # write to AllGamesOnce
-    with open("team_gameData/2020/AllGamesOnce.txt", "a") as f:
+    with open("team_gameData/{}/AllGamesOnce.txt".format(YEAR), "a") as f:
         for gmpk in gmpks:
             f.write(str(gmpk) + ": " + gmpks[gmpk] + "\n")
 
