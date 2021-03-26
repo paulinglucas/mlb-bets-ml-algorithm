@@ -85,9 +85,9 @@ def parsePrediction(predict):
     away = convertPercentToOdds(predict[0][0])
     home = convertPercentToOdds(predict[0][1])
     if away == -1:
-        away = "---"
+        away = "___"
     if home == -1:
-        home = "---"
+        home = "___"
     return str(away) + "," + str(home)
 
 # is prediction above our confidence threshold?
@@ -97,10 +97,10 @@ def checkIfConfident(pred, txtOrTwt):
     elif txtOrTwt == 'Tweet':
         CONFIDENCE_VALUE = TWEET_CONFIDENCE
     pred = pred.strip().split(",")
-    if pred[0] != "---":
+    if pred[0] != "___":
         if int(pred[0]) < CONFIDENCE_VALUE:
             return True
-    elif pred[1] != "---":
+    elif pred[1] != "___":
         if int(pred[1]) < CONFIDENCE_VALUE:
             return True
     return False
@@ -205,7 +205,7 @@ def main(send_text=False, send_twt=False):
         if send_text:
             try:
                 send_sms.send_pred(txt_buf)
-                
+
                 success = None
                 for x in range(4):
                     try:
