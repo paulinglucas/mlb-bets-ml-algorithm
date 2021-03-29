@@ -14,7 +14,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "d
 from keys import ODDS_KEY
 import getGamepks as get
 
-## TODO: figure out how spreads and totals are reported in API, add to database to use when updating
 def next_available_row(worksheet):
     str_list = list(filter(None, worksheet.col_values(1)))
     return str(len(str_list)+1)
@@ -23,11 +22,18 @@ def first_empty_val(worksheet):
     str_list = list(filter(None, worksheet.col_values(5)))
     return str(len(str_list)+1)
 
+def extractMarket(markType):
+    ## extracting odds from api to add to database
+    r = requests.get('https://api.the-odds-api.com/v3/odds/?sport=baseball_mlb&region=us&oddsFormat=american&mkt={1}&apiKey={0}'.format(ODDS_KEY, markType))
+    queries = r.json()
+
+    return queries
+
 def returnCorrectGame(dict, teams):
     for game in dict:
         if teams[0] in game['teams'] and teams[1] in game['teams']:
             for site in game['sites']:
-                if site['site_key'] == 'bovada':
+                if site['site_key'] == 'bovada' or site['site_key'] == 'pointsbetus':
                     return site['odds']
 
 def editSheet(sheet, msg, confidence, amount, doub=1):
@@ -36,23 +42,20 @@ def editSheet(sheet, msg, confidence, amount, doub=1):
     spr = sheet.get_worksheet(1)
     ou = sheet.get_worksheet(2)
 
-    ## extracting odds from api to add to database
-    r = requests.get('https://api.the-odds-api.com/v3/odds/?sport=baseball_mlb&region=us&mkt=h2h&mkt=spreads&mkt=totals&apiKey={0}'.format(ODDS_KEY))
-    queries = r.json()
-
     for gm in msg:
         teams = gm[0]
         vs = teams.find(" vs ")
         away = teams[:vs]
         home = teams[vs+4:]
         teams = [away, home]
-        oddsQuery = returnCorrectGame(queries['data'], teams)
-        ml_odds = oddsQuery['h2h']
-        spread_odds = oddsQuery['spreads']
-        ou_odds = oddsQuery['totals']
 
         ## populate row
+        # ml
         if gm[1] is not None and gm[1][1] < confidence:
+            queries = extractMarket('h2h')
+            oddsQuery = returnCorrectGame(queries['data'], teams)
+            ml_odds = oddsQuery['h2h']
+
             row = next_available_row(ml)
             ml.update_cell(row, 1, gm[0])
             ml.update_cell(row, 4, amount*doub)
@@ -61,23 +64,35 @@ def editSheet(sheet, msg, confidence, amount, doub=1):
             if ml_odds[gm[1][0]] == 1:
                 bet = 'home'
             ml.update_cell(row, 2, bet)
+        # spread
         if gm[2] is not None and gm[2][1] < confidence:
+            queries = extractMarket('spreads')
+            oddsQuery = returnCorrectGame(queries['data'], teams)
+            spread_odds = oddsQuery['spreads']['odds']
+            spread_bet = oddsQuery['spreads']['points']
+
             row = next_available_row(spr)
             spr.update_cell(row, 1, gm[0])
             spr.update_cell(row, 4, amount*doub)
-            spr.update_cell(row, 3, ml_odds[gm[2][0]])
-            bet = 'away'
+            spr.update_cell(row, 3, spread_odds[gm[2][0]])
+            bet = 'away {}'.format(spread_bet[0])
             if ml_odds[gm[2][0]] == 1:
-                bet = 'home'
+                bet = 'home {}'.format(spread_bet[1])
             spr.update_cell(row, 2, bet)
+        # ou
         if gm[3] is not None and gm[3][1] < confidence:
+            queries = extractMarket('totals')
+            oddsQuery = returnCorrectGame(queries['data'], teams)
+            ou_odds = oddsQuery['totals']['odds']
+            ou_bet = oddsQuery['totals']['points']
+
             row = next_available_row(ou)
             ou.update_cell(row, 1, gm[0])
             ou.update_cell(row, 4, amount*doub)
-            ou.update_cell(row, 3, ml_odds[gm[3][0]])
-            bet = 'under'
-            if ml_odds[gm[3][0]] == 1:
-                bet = 'over'
+            ou.update_cell(row, 3, ou_odds[gm[3][0]])
+            bet = 'over {}'.format(ou_bet[0])
+            if ml_odds[gm[2][0]] == 1:
+                bet = 'under {}'.format(ou_bet[1])
             ou.update_cell(row, 2, bet)
 
     return 1
