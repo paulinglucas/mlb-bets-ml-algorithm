@@ -95,9 +95,9 @@ def parsePrediction(predict):
 
 # is prediction above our confidence threshold?
 def checkIfConfident(pred, txtOrDis):
-    if txtOrTwt == 'Text':
+    if txtOrDis == 'Text':
         CONFIDENCE_VALUE = TEXT_CONFIDENCE
-    elif txtOrTwt == 'Discord':
+    elif txtOrDis == 'Discord':
         CONFIDENCE_VALUE = DISCORD_CONFIDENCE
     pred = pred.strip().split(",")
     if pred[0] != "___":
