@@ -53,12 +53,13 @@ def setUpGamepks(year):
     gmpks = {}
     yesterday = d.today() - timedelta(days=1)
     buffer = d.today() - timedelta(days=4)
+    buffer_dt = buffer.strftime('%Y-%m-%d')
     dt = yesterday.strftime('%Y-%m-%d')
 
     gm = None
     for x in range(4):
         try:
-            gm = mlb.schedule(start_date=buffer, end_date=dt)
+            gm = mlb.schedule(start_date=buffer_dt, end_date=dt)
             break
         except requests.exceptions.ConnectionError:
             print("Connection Error for looking up schedule")
@@ -134,7 +135,7 @@ def main():
     l = lst.ListCreator(YEAR)
     l.addToList()
 
-    send_confirmation("Successfully updated data")
+    send_confirmation("Successfully updated data for date {}".format(d.today().strftime('%Y-%m-%d')))
 
 if __name__ == "__main__":
     main()
