@@ -244,19 +244,20 @@ def updateDate():
 
 
 def updateSpreadsheets(my_conf, their_conf, msg):
-    print()
     print("Updating database with odds...")
     print(msg)
-    print()
     # define the scope
     scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
 
     # add credentials to the account
     json_file_handle = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "keys", "920BeatstheBooks-9bd88d6862a1.json"))
+    print(json_file_handle)
     creds = ServiceAccountCredentials.from_json_keyfile_name(json_file_handle, scope)
+    print(creds)
 
     # authorize the clientsheet
     client = gspread.authorize(creds)
+    print(client)
 
     # get the instance of the Spreadsheet
     sheet = client.open('920 Beats Books Spreadsheet')
