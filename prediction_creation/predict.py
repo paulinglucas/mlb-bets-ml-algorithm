@@ -16,6 +16,7 @@ from createPrediction import Predictor
 import statsapi as mlb
 import send_sms
 import populate_sheet
+import requests
 from getGamepks import teams_id
 
 from datetime import date as d
@@ -124,7 +125,7 @@ def main(send_text=False, send_discord=False):
         txt_buf = ''
         discord_dict = {'ml': {}, 'spread': {}, 'ou': {}}
 
-        day = d.today() #- timedelta(days=1)
+        day = d.today()# - timedelta(days=1)
         dt = day.strftime('%Y-%m-%d')
 
         ## handle connection errors
@@ -188,7 +189,8 @@ def main(send_text=False, send_discord=False):
                 if spread_confident:
                     txt_buf += "spr: " + str(spread_out) + '\n'
                 if ou_confident:
-                    txt_buf += "o/u: " + str(ou_out) + '\n\n'
+                    txt_buf += "o/u: " + str(ou_out) + '\n'
+                txt_buf += '\n'
 
             ## for discord API
             if str(g['game_id']) not in texted_games and send_discord and (ml_confident_discord or spread_confident_discord or ou_confident_discord):
@@ -198,17 +200,16 @@ def main(send_text=False, send_discord=False):
                 if ml_confident_discord:
                     discord_dict['ml'][dic_key] = str(ml_out)
                 if spread_confident_discord:
-                    discord_dict['spread'][dic_key] = str(ml_out)
+                    discord_dict['spread'][dic_key] = str(spread_out)
                 if ou_confident_discord:
-                    discord_dict['ou'][dic_key] = str(ml_out)
+                    discord_dict['ou'][dic_key] = str(ou_out)
 
 
         if send_text:
             try:
-                send_sms.send_pred(txt_buf)
-
-                if send_discord:
-                    send_message_to_discord(discord_dict)
+                send_sms.send_pred(txt_buf.strip())
+                # if send_discord:
+                #     send_message_to_discord(discord_dict)
 
                 success = None
                 for x in range(4):

@@ -16,11 +16,11 @@ import getGamepks as get
 
 def next_available_row(worksheet):
     str_list = list(filter(None, worksheet.col_values(1)))
-    return str(len(str_list)+1)
+    return int(len(str_list)+1)
 
 def first_empty_val(worksheet):
     str_list = list(filter(None, worksheet.col_values(5)))
-    return str(len(str_list)+1)
+    return int(len(str_list)+1)
 
 def extractMarket(markType):
     ## extracting odds from api to add to database
@@ -31,7 +31,7 @@ def extractMarket(markType):
 
 def returnCorrectGame(dict, teams):
     for game in dict:
-        if teams[0] in game['teams'] and teams[1] in game['teams']:
+        if (teams[0] in game['teams'][0] or teams[0] in game['teams'][1]) and (teams[1] in game['teams'][0] or teams[1] in game['teams'][1]):
             for site in game['sites']:
                 if site['site_key'] == 'bovada' or site['site_key'] == 'pointsbetus':
                     return site['odds']
@@ -42,12 +42,17 @@ def editSheet(sheet, msg, confidence, amount, doub=1):
     spr = sheet.get_worksheet(1)
     ou = sheet.get_worksheet(2)
 
-    for gm in msg:
+    for gm in msg[7:]:
+        print(msg)
         teams = gm[0]
         vs = teams.find(" vs ")
         away = teams[:vs]
         home = teams[vs+4:]
         teams = [away, home]
+
+        print(teams)
+        queries = extractMarket('h2h')
+        print(queries)
 
         ## populate row
         # ml
@@ -73,25 +78,26 @@ def editSheet(sheet, msg, confidence, amount, doub=1):
 
             row = next_available_row(spr)
             spr.update_cell(row, 1, gm[0])
-            spr.update_cell(row, 4, amount*doub)
+            spr.update_cell(row, 4, amount)
             spr.update_cell(row, 3, spread_odds[gm[2][0]])
             bet = 'away {}'.format(spread_bet[0])
-            if ml_odds[gm[2][0]] == 1:
+            if spread_odds[gm[2][0]] == 1:
                 bet = 'home {}'.format(spread_bet[1])
             spr.update_cell(row, 2, bet)
         # ou
         if gm[3] is not None and gm[3][1] < confidence:
             queries = extractMarket('totals')
             oddsQuery = returnCorrectGame(queries['data'], teams)
+            print(oddsQuery)
             ou_odds = oddsQuery['totals']['odds']
             ou_bet = oddsQuery['totals']['points']
 
             row = next_available_row(ou)
             ou.update_cell(row, 1, gm[0])
-            ou.update_cell(row, 4, amount*doub)
+            ou.update_cell(row, 4, amount)
             ou.update_cell(row, 3, ou_odds[gm[3][0]])
             bet = 'over {}'.format(ou_bet[0])
-            if ml_odds[gm[2][0]] == 1:
+            if ou_odds[gm[3][0]] == 1:
                 bet = 'under {}'.format(ou_bet[1])
             ou.update_cell(row, 2, bet)
 
@@ -102,12 +108,12 @@ def parseLine(line):
     line = line.strip()[4:]
 
     idx = line.find('___')
-    if idx > 1:
+    if idx < 2:
         val = 1
 
     num = line.strip().replace("___","").replace(",","")
     num = int(num)
-    return (val, -num)
+    return (val, num)
 
 def parseMessage(msg):
     lines = msg.splitlines()
@@ -126,7 +132,6 @@ def parseMessage(msg):
         else:
             games.append(lst)
         i += 1
-    games.append(lst)
     return games
 
 ## figure out winners from bets made
@@ -135,7 +140,7 @@ def cycleAndUpdateSheetsWinners():
     scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
 
     # add credentials to the account
-    json_file_handle = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "keys", "920BeatstheBooks-9bd88d6862a1.json"))
+    json_file_handle = os.path.abspath(os.path.join(os.path.dirname(__file__), "keys", "920BeatstheBooks-9bd88d6862a1.json"))
     creds = ServiceAccountCredentials.from_json_keyfile_name(json_file_handle, scope)
 
     # authorize the clientsheet
@@ -149,17 +154,22 @@ def cycleAndUpdateSheetsWinners():
         sheet_instance = sheet.get_worksheet(i)
         my_sheet_instance = my_sheet.get_worksheet(i)
 
-        updateWinners(sheet_instance, i)
-        updateWinners(my_sheet_instance, i)
+        success = updateWinners(sheet_instance, i)
+        success2 = updateWinners(my_sheet_instance, i)
+
+        if not success or not success2:
+            return None
+
+    return 1
 
 def updateWinners(worksheet, sheet_type):
     curr_row = first_empty_val(worksheet)
     end_of_db = next_available_row(worksheet)
     if curr_row == end_of_db:
-        return
+        return 1
 
-    day = get_date.today().strftime('%Y-%m-%d') - timedelta(days=1)
-    yesterdays_games = mlb.schedule(dt=day)
+    day = (get_date.today() - timedelta(days=1)).strftime('%Y-%m-%d')
+    yesterdays_games = mlb.schedule(date=day)
 
     while curr_row != end_of_db:
         curr_game = worksheet.cell(curr_row, 1).value
@@ -198,6 +208,7 @@ def updateWinners(worksheet, sheet_type):
                 else:
                     worksheet.update_cell(curr_row, 5, 'N')
 
+        print(curr_row)
         curr_row += 1
     return 1
 
@@ -206,7 +217,7 @@ def updateDate():
     scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
 
     # add credentials to the account
-    json_file_handle = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "keys", "920BeatstheBooks-9bd88d6862a1.json"))
+    json_file_handle = os.path.abspath(os.path.join(os.path.dirname(__file__), "keys", "920BeatstheBooks-9bd88d6862a1.json"))
     creds = ServiceAccountCredentials.from_json_keyfile_name(json_file_handle, scope)
 
     # authorize the clientsheet
@@ -249,41 +260,41 @@ def updateSpreadsheets(my_conf, their_conf, msg):
 
     msg = parseMessage(msg)
 
-    editSheet(sheet, msg, -300, 100)
-    editSheet(my_sheet, msg, -150, 300, 2)
+    editSheet(sheet, msg, their_conf, 100)
+    editSheet(my_sheet, msg, my_conf, 300, 2)
 
     return 1
 
 if __name__ == '__main__':
-    # ## handle connection errors
-    # success = None
-    # for x in range(4):
-    #     try:
-    #         success = cycleAndUpdateSheetsWinners()
-    #         break
-    #     except requests.exceptions.ConnectionError:
-    #         print("Connection Error for updating sheet winners")
-    #         time.sleep(10)
-    #         continue
-    # if not success:
-    #     print("Connection Errors. Program Exiting")
-    #     send_sms.send_confirmation("Failed to update spreadsheet winners")
-    #     sys.exit(-1)
-    #
-    # ## handle connection errors
-    # success = None
-    # for x in range(1):
-    #     try:
-    #         success = updateDate()
-    #         break
-    #     except requests.exceptions.ConnectionError:
-    #         print("Connection Error for updating date")
-    #         time.sleep(10)
-    #         continue
-    # if not success:
-    #     print("Connection Errors. Program Exiting")
-    #     send_sms.send_confirmation("Failed to update date")
-    #     sys.exit(-1)
+    ## handle connection errors
+    success = None
+    for x in range(4):
+        try:
+            success = cycleAndUpdateSheetsWinners()
+            break
+        except requests.exceptions.ConnectionError:
+            print("Connection Error for updating sheet winners")
+            time.sleep(10)
+            continue
+    if not success:
+        print("Connection Errors updating previous winners. Program Exiting")
+        send_sms.send_confirmation("Failed to update spreadsheet winners")
+        sys.exit(-1)
+
+    ## handle connection errors
+    success = None
+    for x in range(1):
+        try:
+            success = updateDate()
+            break
+        except requests.exceptions.ConnectionError:
+            print("Connection Error for updating date")
+            time.sleep(10)
+            continue
+    if not success:
+        print("Connection Errors updating date. Program Exiting")
+        send_sms.send_confirmation("Failed to update date")
+        sys.exit(-1)
 
 
     # msg = '''White Sox vs Angels
