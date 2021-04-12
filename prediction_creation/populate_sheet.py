@@ -43,6 +43,7 @@ def editSheet(sheet, msg, confidence, amount, doub=1):
     ou = sheet.get_worksheet(2)
 
     for gm in msg:
+        print(gm)
         teams = gm[0]
         vs = teams.find(" vs ")
         away = teams[:vs]
