@@ -30,11 +30,14 @@ def extractMarket(markType):
     return queries
 
 def returnCorrectGame(dict, teams):
+    inverted = False
     for game in dict:
         if (teams[0] in game['teams'][0] or teams[0] in game['teams'][1]) and (teams[1] in game['teams'][0] or teams[1] in game['teams'][1]):
+            if teams[0] not in game['teams'][0]:
+                inverted = True
             for site in game['sites']:
                 if site['site_key'] == 'bovada' or site['site_key'] == 'pointsbetus':
-                    return site['odds']
+                    return site['odds'], inverted
 
 def editSheet(sheet, msg, confidence, amount, doub=1):
     # ML sheet
@@ -48,6 +51,7 @@ def editSheet(sheet, msg, confidence, amount, doub=1):
         away = teams[:vs]
         home = teams[vs+4:]
         teams = [away, home]
+        teams_api =
 
         queries = extractMarket('h2h')
 
@@ -55,13 +59,17 @@ def editSheet(sheet, msg, confidence, amount, doub=1):
         # ml
         if gm[1] is not None and gm[1][1] < confidence:
             queries = extractMarket('h2h')
-            oddsQuery = returnCorrectGame(queries['data'], teams)
+            oddsQuery, inverted = returnCorrectGame(queries['data'], teams)
             ml_odds = oddsQuery['h2h']
+            if inverted:
+                tm = not gm[1][0]
+            else:
+                tm = gm[1][0]
 
             row = next_available_row(ml)
             ml.update_cell(row, 1, gm[0])
             ml.update_cell(row, 4, amount*doub)
-            ml.update_cell(row, 3, ml_odds[gm[1][0]])
+            ml.update_cell(row, 3, ml_odds[tm])
             bet = 'away'
             if gm[1][0] == 1:
                 bet = 'home'
@@ -69,22 +77,26 @@ def editSheet(sheet, msg, confidence, amount, doub=1):
         # spread
         if gm[2] is not None and gm[2][1] < confidence:
             queries = extractMarket('spreads')
-            oddsQuery = returnCorrectGame(queries['data'], teams)
+            oddsQuery, inverted = returnCorrectGame(queries['data'], teams)
             spread_odds = oddsQuery['spreads']['odds']
             spread_bet = oddsQuery['spreads']['points']
+            if inverted:
+                tm = not gm[2][0]
+            else:
+                tm = gm[2][0]
 
             row = next_available_row(spr)
             spr.update_cell(row, 1, gm[0])
             spr.update_cell(row, 4, amount)
-            spr.update_cell(row, 3, spread_odds[gm[2][0]])
-            bet = 'away {}'.format(spread_bet[0])
+            spr.update_cell(row, 3, spread_odds[tm])
+            bet = 'away {}'.format(spread_bet[tm])
             if gm[2][0] == 1:
-                bet = 'home {}'.format(spread_bet[1])
+                bet = 'home {}'.format(spread_bet[tm])
             spr.update_cell(row, 2, bet)
         # ou
         if gm[3] is not None and gm[3][1] < confidence:
             queries = extractMarket('totals')
-            oddsQuery = returnCorrectGame(queries['data'], teams)
+            oddsQuery, inverted = returnCorrectGame(queries['data'], teams)
             ou_odds = oddsQuery['totals']['odds']
             ou_bet = oddsQuery['totals']['points']
 
