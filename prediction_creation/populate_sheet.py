@@ -51,7 +51,6 @@ def editSheet(sheet, msg, confidence, amount, doub=1):
         away = teams[:vs]
         home = teams[vs+4:]
         teams = [away, home]
-        teams_api =
 
         queries = extractMarket('h2h')
 
