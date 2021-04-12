@@ -42,17 +42,14 @@ def editSheet(sheet, msg, confidence, amount, doub=1):
     spr = sheet.get_worksheet(1)
     ou = sheet.get_worksheet(2)
 
-    for gm in msg[7:]:
-        print(msg)
+    for gm in msg:
         teams = gm[0]
         vs = teams.find(" vs ")
         away = teams[:vs]
         home = teams[vs+4:]
         teams = [away, home]
 
-        print(teams)
         queries = extractMarket('h2h')
-        print(queries)
 
         ## populate row
         # ml
@@ -88,7 +85,6 @@ def editSheet(sheet, msg, confidence, amount, doub=1):
         if gm[3] is not None and gm[3][1] < confidence:
             queries = extractMarket('totals')
             oddsQuery = returnCorrectGame(queries['data'], teams)
-            print(oddsQuery)
             ou_odds = oddsQuery['totals']['odds']
             ou_bet = oddsQuery['totals']['points']
 
@@ -208,7 +204,6 @@ def updateWinners(worksheet, sheet_type):
                 else:
                     worksheet.update_cell(curr_row, 5, 'N')
 
-        print(curr_row)
         curr_row += 1
     return 1
 
@@ -244,20 +239,15 @@ def updateDate():
 
 
 def updateSpreadsheets(my_conf, their_conf, msg):
-    print("Updating database with odds...")
-    print(msg)
     # define the scope
     scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
 
     # add credentials to the account
     json_file_handle = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "keys", "920BeatstheBooks-9bd88d6862a1.json"))
-    print(json_file_handle)
     creds = ServiceAccountCredentials.from_json_keyfile_name(json_file_handle, scope)
-    print(creds)
 
     # authorize the clientsheet
     client = gspread.authorize(creds)
-    print(client)
 
     # get the instance of the Spreadsheet
     sheet = client.open('920 Beats Books Spreadsheet')
