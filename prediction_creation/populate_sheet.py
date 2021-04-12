@@ -43,7 +43,6 @@ def editSheet(sheet, msg, confidence, amount, doub=1):
     ou = sheet.get_worksheet(2)
 
     for gm in msg:
-        print(gm)
         teams = gm[0]
         vs = teams.find(" vs ")
         away = teams[:vs]
@@ -64,7 +63,7 @@ def editSheet(sheet, msg, confidence, amount, doub=1):
             ml.update_cell(row, 4, amount*doub)
             ml.update_cell(row, 3, ml_odds[gm[1][0]])
             bet = 'away'
-            if ml_odds[gm[1][0]] == 1:
+            if gm[1][0] == 1:
                 bet = 'home'
             ml.update_cell(row, 2, bet)
         # spread
@@ -79,7 +78,7 @@ def editSheet(sheet, msg, confidence, amount, doub=1):
             spr.update_cell(row, 4, amount)
             spr.update_cell(row, 3, spread_odds[gm[2][0]])
             bet = 'away {}'.format(spread_bet[0])
-            if spread_odds[gm[2][0]] == 1:
+            if gm[2][0] == 1:
                 bet = 'home {}'.format(spread_bet[1])
             spr.update_cell(row, 2, bet)
         # ou
@@ -94,7 +93,7 @@ def editSheet(sheet, msg, confidence, amount, doub=1):
             ou.update_cell(row, 4, amount)
             ou.update_cell(row, 3, ou_odds[gm[3][0]])
             bet = 'over {}'.format(ou_bet[0])
-            if ou_odds[gm[3][0]] == 1:
+            if gm[3][0] == 1:
                 bet = 'under {}'.format(ou_bet[1])
             ou.update_cell(row, 2, bet)
 
