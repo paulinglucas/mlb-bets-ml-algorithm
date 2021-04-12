@@ -40,11 +40,9 @@ def invalidGame(gmpk, year):
 
 
     for gm in dict:
-        if 'Suspended' in gm['status']:
-            return False
         if 'Scheduled' in gm['status']:
             return True
-        if gm['game_type'] in 'SEAI' or (gm['status'] == "Postponed" or gm['status'] == "Cancelled") or gm['status'] == "In Progress":
+        if gm['game_type'] in 'SEAI' or (gm['status'] == "Postponed" or gm['status'] == "Cancelled" or 'Suspended' in gm['status']) or gm['status'] == "In Progress":
             return True
         if int(gm['game_date'][:4]) < year:
             return True
