@@ -244,6 +244,10 @@ def updateDate():
 
 
 def updateSpreadsheets(my_conf, their_conf, msg):
+    print()
+    print("Updating database with odds...")
+    print(msg)
+    print()
     # define the scope
     scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
 
