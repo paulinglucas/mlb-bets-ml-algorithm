@@ -26,7 +26,7 @@ from datetime import timedelta
 from send_to_discord import send_message_to_discord
 
 CONFIDENCE_VALUE = -10000
-TEXT_CONFIDENCE = -150
+TEXT_CONFIDENCE = -200
 DISCORD_CONFIDENCE = -250
 
 YEAR = 2021
