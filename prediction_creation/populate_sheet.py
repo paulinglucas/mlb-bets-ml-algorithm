@@ -273,6 +273,7 @@ def updateSpreadsheets(my_conf, their_conf, msg):
 
 if __name__ == '__main__':
     ## handle connection errors
+    print('Updating winners from last night')
     success = None
     for x in range(4):
         try:
@@ -288,6 +289,7 @@ if __name__ == '__main__':
         sys.exit(-1)
 
     ## handle connection errors
+    print('Updating current date inside database')
     success = None
     for x in range(1):
         try:
@@ -302,6 +304,7 @@ if __name__ == '__main__':
         send_sms.send_confirmation("Failed to update date")
         sys.exit(-1)
 
+    print('Success')
 
     # msg = '''White Sox vs Angels
     # ml: ___,-340
