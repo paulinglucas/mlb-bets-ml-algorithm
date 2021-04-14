@@ -210,8 +210,8 @@ def main(send_text=False, send_discord=False):
         if send_text:
             try:
                 send_sms.send_pred(txt_buf.strip())
-                # if send_discord:
-                #     send_message_to_discord(discord_dict)
+                if send_discord:
+                    send_message_to_discord(discord_dict)
 
                 success = None
                 for x in range(4):
