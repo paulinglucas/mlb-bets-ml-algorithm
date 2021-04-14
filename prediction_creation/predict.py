@@ -153,6 +153,9 @@ def main(send_text=False, send_discord=False):
             if lst == [-1]: continue
             lst = normalize_lst(lst)
 
+            ## write to texted games so predictions dont come in after game starts
+            f.write(str(g['game_id']) + '\n')
+
             lst = np.array(lst)
             lst = lst.reshape(1,-1)
 
@@ -180,7 +183,6 @@ def main(send_text=False, send_discord=False):
 
             ## only send text if odds are greater than 77% chance either way
             if str(g['game_id']) not in texted_games and send_text and (ml_confident or spread_confident or ou_confident):
-                f.write(str(g['game_id']) + '\n')
                 home = teams_id[g['home_id']]
                 away = teams_id[g['away_id']]
                 txt_buf += away + " vs " + home + '\n'
