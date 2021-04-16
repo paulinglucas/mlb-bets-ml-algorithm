@@ -242,8 +242,20 @@ def main(send_text=False, send_discord=False):
             ou_confident_discord = checkIfConfident(ou_out, "Discord")
 
             ## underdog value?
-            ml_underdog = hasUnderdogValue([away, home], 'h2h', ml_out)
-            spread_underdog = hasUnderdogValue([away, home], 'spreads', spread_out)
+            spread_underdog = None
+            for x in range(4):
+                try:
+                    ml_underdog = hasUnderdogValue([away, home], 'h2h', ml_out)
+                    spread_underdog = hasUnderdogValue([away, home], 'spreads', spread_out)
+                    break
+                except requests.exceptions.ConnectionError:
+                    print("Connection Error for looking up odds to predict")
+                    time.sleep(10)
+                    continue
+            if spread_underdog == None:
+                print("Connection Errors. Program Exiting")
+                send_sms.send_confirmation("Failed to update underdogs")
+                sys.exit(-1)
 
             under_dog_ml = False
             under_dog_spread = False
