@@ -14,14 +14,14 @@ from gatherPlayers import extractPickle
 import numpy as np
 from magic import win_loss, spreads_loss, ou_loss, loss_accuracy
 
-class Backtest:
-    def __init__(self, confidence, amount_per_bet, double_yes, wantScreen):
+class Backtest_Underdog:
+    def __init__(self, underdog_threshold, amount_per_bet, double_yes, wantScreen):
         self.LIST = extractPickle('twoD_list.pickle', 2019)[150:]
         self.OUTCOMES = extractPickle('outcome_vectors.pickle', 2019)[150:]
         self.ml_model = tf.keras.models.load_model('models/win_loss.hdf5', custom_objects={'win_loss': win_loss})
         self.spread_model = tf.keras.models.load_model('models/spreads_loss.hdf5', custom_objects={'spreads_loss': spreads_loss})
         self.ou_model = tf.keras.models.load_model('models/ou_loss.hdf5', custom_objects={'ou_loss': ou_loss})
-        self.confidence = self.convertOddsToPercent(confidence)
+        self.threshold = underdog_threshold
         self.amount_per_bet = amount_per_bet
         self.wantScreen = wantScreen
         self.double_val = double_yes
@@ -66,13 +66,8 @@ class Backtest:
         lst[56]  = round(lst[56] / 114, 3)
         return lst
 
-    def convertOddsToPercent(self, odds):
-        if odds > 0:
-            return 100 / (odds + 100)
-        if odds < 0:
-            odds = -odds
-            return odds / (odds + 100)
-        return .5
+    def convertDecimalToPercent(self, odds):
+        return (1 / odds)
 
     def test(self):
         #os.system('clear')
@@ -95,6 +90,7 @@ class Backtest:
 
             amount_bet = 0
             amount_won = 0
+            total_bet = 0
 
             num_ml_bets = 0
             num_ml_success = 0
@@ -105,11 +101,6 @@ class Backtest:
             num_spread_success = 0
             spread_money = 0
             spread_winnings = 0
-
-            num_ou_bets = 0
-            num_ou_success = 0
-            ou_money = 0
-            ou_winnings = 0
 
             home_bets = 0
             home_spread_bets = 0
@@ -131,14 +122,14 @@ class Backtest:
                 ## moneyline
                 ml_predict = self.ml_model.predict([game])
 
-                if ml_predict[0][0] > self.confidence:
+                if ml_predict[0][0] > self.threshold and self.convertDecimalToPercent(outcome[6]) < 0.5:
                     if outcome[0] == 1:
                         num_ml_success += 1
                         ml_winnings += self.amount_per_bet*outcome[6]*double_val
                     ml_money += self.amount_per_bet*double_val
                     num_ml_bets += 1
 
-                if ml_predict[0][1] > self.confidence:
+                if ml_predict[0][1] > self.threshold and self.convertDecimalToPercent(outcome[7]) < 0.5:
                     home_bets += 1
                     if outcome[1] == 1:
                         num_ml_success += 1
@@ -149,14 +140,14 @@ class Backtest:
                 ## spread
                 spread_predict = self.spread_model.predict([game])
 
-                if spread_predict[0][0] > self.confidence:
+                if spread_predict[0][0] > self.threshold and self.convertDecimalToPercent(outcome[8]) < 0.5:
                     if outcome[2] == 1:
                         num_spread_success += 1
                         spread_winnings += self.amount_per_bet*outcome[8]
                     spread_money += self.amount_per_bet
                     num_spread_bets += 1
 
-                if spread_predict[0][1] > self.confidence:
+                if spread_predict[0][1] > self.threshold and self.convertDecimalToPercent(outcome[9]) < 0.5:
                     home_spread_bets += 1
                     if outcome[3] == 1:
                         num_spread_success += 1
@@ -164,29 +155,11 @@ class Backtest:
                     spread_money += self.amount_per_bet
                     num_spread_bets += 1
 
-                ## o/u
-                ou_predict = self.ou_model.predict([game])
-
-                if ou_predict[0][0] > self.confidence:
-                    if outcome[4] == 1:
-                        num_ou_success += 1
-                        ou_winnings += self.amount_per_bet*outcome[10]
-                    ou_money += self.amount_per_bet
-                    num_ou_bets += 1
-
-                if ou_predict[0][1] > self.confidence:
-                    under_bets += 1
-                    if outcome[5] == 1:
-                        num_ou_success += 1
-                        ou_winnings += self.amount_per_bet*outcome[11]
-                    ou_money += self.amount_per_bet
-                    num_ou_bets += 1
-
                 ## update totals
-                total_bet = num_ml_bets + num_spread_bets + num_ou_bets
-                total_won = num_ml_success + num_spread_success + num_ou_success
-                amount_bet = ml_money + spread_money + ou_money
-                amount_won = ml_winnings + spread_winnings + ou_winnings
+                total_bet = num_ml_bets + num_spread_bets
+                total_won = num_ml_success + num_spread_success
+                amount_bet = ml_money + spread_money
+                amount_won = ml_winnings + spread_winnings
 
                 ## add data points to graph
                 munnies .append(round(amount_bet,2))
@@ -220,15 +193,6 @@ class Backtest:
                     except ZeroDivisionError:
                         pass
                     stdscr.addstr("SPREAD PROFITS: ${}\n".format(round(spread_winnings - spread_money, 2)))
-                    stdscr.addstr("\n")
-                    try:
-                        stdscr.addstr("O/U BETS MADE: {}\n".format(num_ou_bets))
-                        stdscr.addstr("O/U SUCCESS RATE: {}%\n".format(round((num_ou_success / num_ou_bets)*100, 3)))
-                        stdscr.addstr("UNDER BET RATE: {}%\n".format(round((under_bets / num_ml_bets)*100, 3)))
-                        stdscr.addstr("AVG WINNINGS: ${}\n".format(round((ou_winnings-(num_ou_success*self.amount_per_bet)) / num_ou_success, 2)))
-                    except ZeroDivisionError:
-                        pass
-                    stdscr.addstr("OU PROFITS: ${}\n".format(round(ou_winnings - ou_money, 2)))
                     stdscr.addstr("\n\n")
                     stdscr.refresh()
             if self.wantScreen:
@@ -264,7 +228,7 @@ class Backtest:
 
 if __name__ == '__main__':
     if len(sys.argv) != 4:
-        print("USAGE: python3 backtesting.py [CONFIDENCE_VALUE] [AMOUNT_PER_BET] [DOUBLE MONEYLINE BET (1 for no, 2 for yes)]")
+        print("USAGE: python3 test_underdogs.py [UNDERDOG_THRESHOLD] [AMOUNT_PER_BET] [DOUBLE MONEYLINE BET (1 for no, 2 for yes)]")
         sys.exit(0)
 
-    Backtest(int(sys.argv[1]), float(sys.argv[2]), int(sys.argv[3]), wantScreen=True).test()
+    Backtest_Underdog(float(sys.argv[1]), float(sys.argv[2]), int(sys.argv[3]), wantScreen=True).test()

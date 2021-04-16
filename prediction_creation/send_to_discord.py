@@ -4,7 +4,7 @@ from discord_webhook import DiscordWebhook
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "keys")))
 
-from keys import ML_URL, SPREAD_URL, OU_URL
+from keys import ML_URL, SPREAD_URL, OU_URL, UNDERDOG_URL
 
 def format_msg(msg_key, msg, ou=False):
     msg = msg.strip().split(",")
@@ -36,6 +36,21 @@ def send_message_to_discord(msg_dict):
         ou_msg += "{}\n".format(format_msg(gm, msg_dict['ou'][gm], ou=True))
     webhook = DiscordWebhook(url=OU_URL, content=ou_msg.strip())
     response = webhook.execute()
+
+
+def send_underdogs_to_discord(msg_dict):
+    ml_msg = "MONEYLINE UNDERDOGS\n\n"
+    spread_msg = "SPREAD UNDERDOGS\n\n"
+    for gm in msg_dict['ml']:
+        ml_msg += "{}\n".format(format_msg(gm, msg_dict['ml'][gm]))
+    webhook = DiscordWebhook(url=UNDERDOG_URL, content=ml_msg)
+    response = webhook.execute()
+
+    for gm in msg_dict['spread']:
+        spread_msg += "{}\n".format(format_msg(gm, msg_dict['spread'][gm]))
+    webhook = DiscordWebhook(url=UNDERDOG_URL, content=spread_msg)
+    response = webhook.execute()
+
 
 if __name__ == "__main__":
     msg_dict = {

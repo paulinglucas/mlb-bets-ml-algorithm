@@ -32,12 +32,13 @@ def extractMarket(markType):
 def returnCorrectGame(dict, teams):
     inverted = False
     for game in dict:
-        if (teams[0] in game['teams'][0] or teams[0] in game['teams'][1]) and (teams[1] in game['teams'][0] or teams[1] in game['teams'][1]):
-            if teams[0] not in game['teams'][0]:
+        if (teams[0].lower() in game['teams'][0].lower() or teams[0].lower() in game['teams'][1].lower()) and (teams[1].lower() in game['teams'][0].lower() or teams[1].lower() in game['teams'][1].lower()):
+            if teams[0].lower() not in game['teams'][0].lower():
                 inverted = True
             for site in game['sites']:
                 if site['site_key'] == 'bovada' or site['site_key'] == 'pointsbetus':
                     return site['odds'], inverted
+    return False, False
 
 def editSheet(sheet, msg, confidence, amount, doub=1):
     # ML sheet
@@ -110,9 +111,9 @@ def editSheet(sheet, msg, confidence, amount, doub=1):
 
     return 1
 
-def parseLine(line):
+def parseLine(line, buff=4):
     val = 0
-    line = line.strip()[4:]
+    line = line.strip()[buff:]
 
     idx = line.find('___')
     if idx < 2:
@@ -141,6 +142,28 @@ def parseMessage(msg):
         i += 1
     return games
 
+def parseDict(dict):
+    print(dict)
+    games = []
+    lst = []
+    done_games = []
+
+    for g in dict['ml']:
+        lst = [g, parseLine(dict['ml'][g], buff=0), None, None]
+        if g in dict['spread']:
+            lst[2] = parseLine(dict['spread'][g], buff=0)
+        done_games.append(g)
+        games.append(lst)
+
+    for g in dict['spread']:
+        if g not in done_games:
+            lst = [g, None, parseLine(dict['spread'][g], buff=0), None]
+            done_games.append(g)
+            games.append(lst)
+
+    return games
+
+
 ## figure out winners from bets made
 def cycleAndUpdateSheetsWinners():
     # define the scope
@@ -156,15 +179,18 @@ def cycleAndUpdateSheetsWinners():
     # get the instance of the Spreadsheet
     sheet = client.open('920 Beats Books Spreadsheet')
     my_sheet = client.open('MLB Sheet 2021')
+    underdog_sheet = client.open('MLB Underdog Spreadsheet')
 
     for i in range(3):
         sheet_instance = sheet.get_worksheet(i)
         my_sheet_instance = my_sheet.get_worksheet(i)
+        under_instance = underdog_sheet.get_worksheet(i)
 
         success = updateWinners(sheet_instance, i)
         success2 = updateWinners(my_sheet_instance, i)
+        success3 = updateWinners(under_instance, i)
 
-        if not success or not success2:
+        if not success or not success2 or not success3:
             return None
 
     return 1
@@ -232,24 +258,29 @@ def updateDate():
     # get the instance of the Spreadsheet
     sheet = client.open('920 Beats Books Spreadsheet')
     my_sheet = client.open('MLB Sheet 2021')
+    under_sheet = client.open('MLB Underdog Spreadsheet')
 
     for i in range(3):
         sheet_instance = sheet.get_worksheet(i)
         my_sheet_instance = my_sheet.get_worksheet(i)
+        under_instance = under_sheet.get_worksheet(i)
 
         their_row = next_available_row(sheet_instance)
         my_row = next_available_row(my_sheet_instance)
+        under_row = next_available_row(under_instance)
 
         sheet_instance.update_cell(their_row, 1, datetime.today().strftime('%m/%d'))
         my_sheet_instance.update_cell(my_row, 1, datetime.today().strftime('%m/%d'))
+        under_instance.update_cell(under_row, 1, datetime.today().strftime('%m/%d'))
 
         sheet_instance.update_cell(their_row, 5, "-")
         my_sheet_instance.update_cell(my_row, 5, "-")
+        under_instance.update_cell(under_row, 5, "-")
 
     return 1
 
 
-def updateSpreadsheets(my_conf, their_conf, msg):
+def updateSpreadsheets(my_conf, their_conf, under_conf, msg, dict):
     # define the scope
     scope = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
 
@@ -263,11 +294,14 @@ def updateSpreadsheets(my_conf, their_conf, msg):
     # get the instance of the Spreadsheet
     sheet = client.open('920 Beats Books Spreadsheet')
     my_sheet = client.open('MLB Sheet 2021')
+    under_sheet = client.open('MLB Underdog Spreadsheet')
 
     msg = parseMessage(msg)
+    dict_msg = parseDict(dict)
 
     editSheet(sheet, msg, their_conf, 100)
     editSheet(my_sheet, msg, my_conf, 300, 2)
+    editSheet(under_sheet, dict_msg, under_conf, 100)
 
     return 1
 
