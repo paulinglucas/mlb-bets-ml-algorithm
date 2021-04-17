@@ -43,13 +43,15 @@ def send_underdogs_to_discord(msg_dict):
     spread_msg = "SPREAD UNDERDOGS\n\n"
     for gm in msg_dict['ml']:
         ml_msg += "{}\n".format(format_msg(gm, msg_dict['ml'][gm]))
-    webhook = DiscordWebhook(url=UNDERDOG_URL, content=ml_msg)
-    response = webhook.execute()
+    if len(msg_dict['ml'].keys()) > 0:
+        webhook = DiscordWebhook(url=UNDERDOG_URL, content=ml_msg)
+        response = webhook.execute()
 
     for gm in msg_dict['spread']:
         spread_msg += "{}\n".format(format_msg(gm, msg_dict['spread'][gm]))
-    webhook = DiscordWebhook(url=UNDERDOG_URL, content=spread_msg)
-    response = webhook.execute()
+    if len(msg_dict['spread'].keys()) > 0:
+        webhook = DiscordWebhook(url=UNDERDOG_URL, content=spread_msg)
+        response = webhook.execute()
 
 
 if __name__ == "__main__":
