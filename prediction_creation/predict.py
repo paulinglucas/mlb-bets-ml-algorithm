@@ -253,6 +253,9 @@ def main(send_text=False, send_discord=False):
                     if str(g['game_id']) not in texted_games:
                         ml_underdog = hasUnderdogValue([away, home], 'h2h', ml_out)
                         spread_underdog = hasUnderdogValue([away, home], 'spreads', spread_out)
+                    else:
+                        ml_underdog = False
+                        spread_underdog = False
                     break
                 except requests.exceptions.ConnectionError:
                     print("Connection Error for looking up odds to predict")
