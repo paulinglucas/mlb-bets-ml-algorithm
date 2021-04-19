@@ -114,7 +114,7 @@ def hasUnderdogValue(teams, market, prediction):
     ## moneyline
     if market == 'h2h':
         queries = populate_sheet.extractMarket('h2h')
-        if queries['success'] == 'false':
+        if queries['success'] == False:
             return False
         oddsQuery, inverted = populate_sheet.returnCorrectGame(queries['data'], teams)
         if oddsQuery == False:
@@ -136,7 +136,7 @@ def hasUnderdogValue(teams, market, prediction):
     ## spread
     if market == 'spreads':
         queries = populate_sheet.extractMarket('spreads')
-        if queries['success'] == 'false':
+        if queries['success'] == False:
             return False
         oddsQuery, inverted = populate_sheet.returnCorrectGame(queries['data'], teams)
         if oddsQuery == False:
