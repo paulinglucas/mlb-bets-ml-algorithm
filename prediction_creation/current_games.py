@@ -8,9 +8,11 @@ import gameStats as stat
 import extractOdds as odds
 import createUsableList as lst
 import statsapi as mlb
+import requests
 from datetime import date as d
 from datetime import timedelta
 from send_sms import send_confirmation
+
 
 YEAR = 2021
 
@@ -128,12 +130,14 @@ def main():
     stats.addInAllStats()
 
     # get odds of every game, one seemed to not have any ... 2425 game odds
-    # o = OddsExtractor(YEAR)
+    # o = odds.OddsExtractor(YEAR)
     # o.extractAllOdds()
 
     # create lists to load into machine learning algorithm
     l = lst.ListCreator(YEAR)
     l.addToList()
+    # l.checkOdds()
+    # l.spread()
 
     send_confirmation("Successfully updated data for date {}".format(d.today().strftime('%Y-%m-%d')))
 

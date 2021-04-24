@@ -280,11 +280,11 @@ def main(send_text=False, send_discord=False):
                     under_dog_spread = True
 
             ## only send text if odds are greater than 77% chance either way
-            if str(g['game_id']) not in texted_games and send_text and (ml_confident or spread_confident or ou_confident):
+            if str(g['game_id']) not in texted_games and send_text and (ml_confident or spread_confident or ou_confident or ml_underdog or spread_underdog):
                 txt_buf += away + " vs " + home + '\n'
-                if ml_confident:
+                if ml_confident or ml_underdog:
                     txt_buf += "ml: " + str(ml_out) + '\n'
-                if spread_confident:
+                if spread_confident or spread_underdog:
                     txt_buf += "spr: " + str(spread_out) + '\n'
                 if ou_confident:
                     txt_buf += "o/u: " + str(ou_out) + '\n'

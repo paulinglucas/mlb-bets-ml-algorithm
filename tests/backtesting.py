@@ -16,8 +16,8 @@ from magic import win_loss, spreads_loss, ou_loss, loss_accuracy
 
 class Backtest:
     def __init__(self, confidence, amount_per_bet, double_yes, wantScreen):
-        self.LIST = extractPickle('twoD_list.pickle', 2019)[150:]
-        self.OUTCOMES = extractPickle('outcome_vectors.pickle', 2019)[150:]
+        self.LIST = extractPickle('twoD_list.pickle', 2021)[100:]
+        self.OUTCOMES = extractPickle('outcome_vectors.pickle', 2021)[100:]
         self.ml_model = tf.keras.models.load_model('models/win_loss.hdf5', custom_objects={'win_loss': win_loss})
         self.spread_model = tf.keras.models.load_model('models/spreads_loss.hdf5', custom_objects={'spreads_loss': spreads_loss})
         self.ou_model = tf.keras.models.load_model('models/ou_loss.hdf5', custom_objects={'ou_loss': ou_loss})
@@ -239,19 +239,19 @@ class Backtest:
                     pass
                 stdscr.refresh()
 
-                ##drawdown
-                i = np.argmax(np.maximum.accumulate(munnies_made) - munnies_made) # end of the period
-                j = np.argmax(munnies_made[:i]) # start of period
+            ##drawdown
+            i = np.argmax(np.maximum.accumulate(munnies_made) - munnies_made) # end of the period
+            j = np.argmax(munnies_made[:i]) # start of period
 
-                ## plot graph
-                plt.plot(munnies, munnies_made)
-                plt.title('Total profit with ${} bets - 2019'.format(self.amount_per_bet))
-                plt.xlabel('Amount bet\nProfit range: {}, {}\nMax Drawdown: ${}'.format(min(munnies_made), max(munnies_made), round(munnies_made[i] - munnies_made[j], 2)))
-                plt.ylabel('Profit')
-                plt.plot([munnies[i], munnies[j]], [munnies_made[i], munnies_made[j]], 'o', color='Red', markersize=4)
+            ## plot graph
+            plt.plot(munnies, munnies_made)
+            plt.title('Total profit with ${} bets - 2019'.format(self.amount_per_bet))
+            plt.xlabel('Amount bet\nProfit range: {}, {}\nMax Drawdown: ${}'.format(min(munnies_made), max(munnies_made), round(munnies_made[i] - munnies_made[j], 2)))
+            plt.ylabel('Profit')
+            plt.plot([munnies[i], munnies[j]], [munnies_made[i], munnies_made[j]], 'o', color='Red', markersize=4)
 
-                plt.tight_layout()
-                plt.show()
+            plt.tight_layout()
+            plt.show()
         except (KeyboardInterrupt, Exception):
             pass
         if self.wantScreen:
@@ -267,4 +267,4 @@ if __name__ == '__main__':
         print("USAGE: python3 backtesting.py [CONFIDENCE_VALUE] [AMOUNT_PER_BET] [DOUBLE MONEYLINE BET (1 for no, 2 for yes)]")
         sys.exit(0)
 
-    Backtest(int(sys.argv[1]), float(sys.argv[2]), int(sys.argv[3]), wantScreen=True).test()
+    Backtest(int(sys.argv[1]), float(sys.argv[2]), int(sys.argv[3]), wantScreen=False).test()

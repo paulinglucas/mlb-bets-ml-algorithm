@@ -106,7 +106,7 @@ class GamePackGetter:
         dict = mlb.schedule(date=None, start_date=startDate, end_date=endDate, team="", opponent="", sportId=1, game_id=None)
         for gm in dict:
             # we only want regular season games, or games not postponed/cancelled
-            if gm['game_type'] != 'R' or (gm['status'] == "Postponed" or gm['status'] == "Cancelled"):
+            if gm['game_type'] != 'R' or (gm['status'] == "Postponed" or gm['status'] == "Cancelled" or 'Suspended' in gm['status']):
                 continue
             else:
                 date_id = gm['game_date'].split("-")
