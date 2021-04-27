@@ -63,7 +63,7 @@ def setUpGamepks(year):
     gm = None
     for x in range(4):
         try:
-            gm = mlb.schedule(start_date='2021-04-01', end_date=dt)
+            gm = mlb.schedule(start_date=buffer_dt, end_date=dt)
             break
         except requests.exceptions.ConnectionError:
             print("Connection Error for looking up schedule")
