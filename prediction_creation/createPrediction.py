@@ -25,7 +25,6 @@ class Predictor:
         self.year = year
         self.BATTERS = p.extractPickle("batters.pickle", self.year)
         self.PITCHERS = p.extractPickle("pitchers.pickle", self.year)
-        self.SCORES = p.extractPickle('scores.pickle', self.year)
 
     def lookup(self, name, tm):
         name = name.split()
@@ -58,12 +57,12 @@ class Predictor:
 
 
     # returns stat of lineup
-    def averageLineupStats(self, stat, gmpk, lineup, perGame=False):
+    def averageLineupStats(self, stat, lineup, perGame=False):
         statSum = 0
         count = 0
         for batter in lineup:
             try:
-                batterGmpk = gmpk
+                batterGmpk = self.BATTERS[batter]['gmpksInOrder'][-1]
                 if perGame:
                     statForGame = float(self.BATTERS[batter]['gmpks'][batterGmpk][stat]) / self.BATTERS[batter]['gmpks'][batterGmpk]['gamesPlayed']
                     statSum += statForGame
@@ -78,16 +77,16 @@ class Predictor:
         return statAvg
 
     # batter stats going in
-    def addBatterStats(self, batStats, gmpk, lineup):
+    def addBatterStats(self, batStats, lineup):
 
         # add in stats to batter stats
-        batStats[BatterStats.BA] = self.averageLineupStats('avg', gmpk, lineup)
-        batStats[BatterStats.OBP] = self.averageLineupStats('obp', gmpk, lineup)
-        batStats[BatterStats.SLG] = self.averageLineupStats('slg', gmpk, lineup)
-        batStats[BatterStats.OPS] = self.averageLineupStats('ops', gmpk, lineup)
-        batStats[BatterStats.RPG] = self.averageLineupStats('runs', gmpk, lineup, True)
-        batStats[BatterStats.HRPG] = self.averageLineupStats('homeRuns', gmpk, lineup, True)
-        batStats[BatterStats.SOPG] = self.averageLineupStats('strikeOuts', gmpk, lineup, True)
+        batStats[BatterStats.BA] = self.averageLineupStats('avg', lineup)
+        batStats[BatterStats.OBP] = self.averageLineupStats('obp', lineup)
+        batStats[BatterStats.SLG] = self.averageLineupStats('slg', lineup)
+        batStats[BatterStats.OPS] = self.averageLineupStats('ops', lineup)
+        batStats[BatterStats.RPG] = self.averageLineupStats('runs', lineup, True)
+        batStats[BatterStats.HRPG] = self.averageLineupStats('homeRuns', lineup, True)
+        batStats[BatterStats.SOPG] = self.averageLineupStats('strikeOuts', lineup, True)
         lhpSum = 0
         count = 0
         # get % lineup that is left-handed
@@ -132,7 +131,9 @@ class Predictor:
             return -1
         return lineups
 
-    def returnTeamStats(self, tm, pitcher, lineup):
+    def returnTeamStats(self, tm, pitcher, lineup, gmpk):
+        g = GameStats(self.year)
+
         # getGamepk for lineup and bullpen
         prevGmpk = self.BATTERS[tm]['gmpksInOrder'][-1]
 
@@ -141,10 +142,10 @@ class Predictor:
 
         # load in batter stats
         batStats = [0,0,0,0,0,0,0,0]
-        self.addBatterStats(batStats, prevGmpk, lineup)
+        self.addBatterStats(batStats, lineup)
 
         # load in pitcher stats
-        g = GameStats(self.year)
+
         pitchingStats = [0,0,0,0,0,0,0,0,0,0,0,0,0]
         g.addPitcherStats(pitchingStats, pitcherGmpk, pitcher)
 
@@ -170,6 +171,8 @@ class Predictor:
         lineups = self.getLineups(game)
         if lineups == -1:
             return -1
+
+        gm = game['game_id']
 
         print("####################################")
         print("##### {0:10} @  {1:10} #####".format(lineups['away'].upper(), lineups['home'].upper()))
@@ -202,8 +205,8 @@ class Predictor:
         homeLineup = lineups['hLineup']
         awayLineup = lineups['aLineup']
 
-        stats['away'] = self.returnTeamStats(lineups['away'], aPitcher, awayLineup)
-        stats['home'] = self.returnTeamStats(lineups['home'], hPitcher, homeLineup)
+        stats['away'] = self.returnTeamStats(lineups['away'], aPitcher, awayLineup, gm)
+        stats['home'] = self.returnTeamStats(lineups['home'], hPitcher, homeLineup, gm)
 
         lst = stats['away'] + stats['home']
         return lst
