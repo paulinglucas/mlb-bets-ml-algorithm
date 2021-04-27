@@ -143,3 +143,4 @@ models
 send_sms.py
 keys.py
 *.json
+tests/test_files/*

@@ -16,11 +16,11 @@ from magic import win_loss, spreads_loss, ou_loss, loss_accuracy
 
 class Backtest:
     def __init__(self, confidence, amount_per_bet, double_yes, wantScreen):
-        self.LIST = extractPickle('twoD_list.pickle', 2021)[100:]
-        self.OUTCOMES = extractPickle('outcome_vectors.pickle', 2021)[100:]
-        self.ml_model = tf.keras.models.load_model('models/win_loss.hdf5', custom_objects={'win_loss': win_loss})
-        self.spread_model = tf.keras.models.load_model('models/spreads_loss.hdf5', custom_objects={'spreads_loss': spreads_loss})
-        self.ou_model = tf.keras.models.load_model('models/ou_loss.hdf5', custom_objects={'ou_loss': ou_loss})
+        self.LIST = extractPickle('twoD_list.pickle', 2021)[150:]
+        self.OUTCOMES = extractPickle('outcome_vectors.pickle', 2021)[150:]
+        self.ml_model = tf.keras.models.load_model('models/win_loss.hdf5')
+        self.spread_model = tf.keras.models.load_model('models/spreads_loss.hdf5')
+        self.ou_model = tf.keras.models.load_model('models/ou_loss.hdf5')
         self.confidence = self.convertOddsToPercent(confidence)
         self.amount_per_bet = amount_per_bet
         self.wantScreen = wantScreen
@@ -119,17 +119,19 @@ class Backtest:
             munnies = []
             munnies_made = []
 
+
             ## ru through each game in the list, updating profits and wins accordingly
             for game, outcome in zip(self.LIST, self.OUTCOMES):
+                game_num += 1
                 if self.wantScreen:
                     stdscr.erase()
                     ## update days in terminal
-                    game_num += 1
                     if game_num % 15 == 0: day += 1
                     stdscr.addstr("DAY {}\n\n".format(day))
 
                 ## moneyline
                 ml_predict = self.ml_model.predict([game])
+
 
                 if ml_predict[0][0] > self.confidence:
                     if outcome[0] == 1:
@@ -267,4 +269,4 @@ if __name__ == '__main__':
         print("USAGE: python3 backtesting.py [CONFIDENCE_VALUE] [AMOUNT_PER_BET] [DOUBLE MONEYLINE BET (1 for no, 2 for yes)]")
         sys.exit(0)
 
-    Backtest(int(sys.argv[1]), float(sys.argv[2]), int(sys.argv[3]), wantScreen=False).test()
+    Backtest(int(sys.argv[1]), float(sys.argv[2]), int(sys.argv[3]), wantScreen=True).test()

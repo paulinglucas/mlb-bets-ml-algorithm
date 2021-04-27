@@ -43,12 +43,14 @@ def invalidGame(gmpk, year):
 
     for gm in dict:
         if 'Scheduled' in gm['status']:
-            return True
-        if gm['game_type'] in 'SEAI' or (gm['status'] == "Postponed" or gm['status'] == "Cancelled" or 'Suspended' in gm['status']) or gm['status'] == "In Progress":
-            return True
-        if int(gm['game_date'][:4]) < year:
-            return True
-    return False
+            continue
+        elif gm['game_type'] in 'SEAI' or (gm['status'] == "Postponed" or gm['status'] == "Cancelled" or 'Suspended' in gm['status']) or gm['status'] == "In Progress":
+            continue
+        elif int(gm['game_date'][:4]) < year:
+            continue
+        else:
+            return False
+    return True
 
 # add gamepacks to current year
 def setUpGamepks(year):
@@ -61,7 +63,7 @@ def setUpGamepks(year):
     gm = None
     for x in range(4):
         try:
-            gm = mlb.schedule(start_date=buffer_dt, end_date=dt)
+            gm = mlb.schedule(start_date='2021-04-01', end_date=dt)
             break
         except requests.exceptions.ConnectionError:
             print("Connection Error for looking up schedule")
@@ -129,7 +131,7 @@ def main():
     stats = stat.GameStats(YEAR)
     stats.addInAllStats()
 
-    # get odds of every game, one seemed to not have any ... 2425 game odds
+    # # get odds of every game, one seemed to not have any ... 2425 game odds
     # o = odds.OddsExtractor(YEAR)
     # o.extractAllOdds()
 

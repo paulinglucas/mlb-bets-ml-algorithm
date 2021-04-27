@@ -34,7 +34,7 @@ import numpy as np
 DATA_NEW = extractPickle('data_to_use.pickle', 1)
 OUTPUTS_NEW = extractPickle('outputs_to_use.pickle', 1)
 CUTOFF = int(len(DATA_NEW)*0.78)
-FILENAME = 'ou.h5'
+FILENAME = 'test_ml.h5'
 
 # normalize data
 for i in range(len(DATA_NEW)):

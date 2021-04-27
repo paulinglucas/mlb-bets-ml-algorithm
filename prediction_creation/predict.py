@@ -29,8 +29,8 @@ from send_to_discord import send_underdogs_to_discord
 
 CONFIDENCE_VALUE = -10000
 TEXT_CONFIDENCE = -200
-DISCORD_CONFIDENCE = -350
-UNDERDOG_CONFIDENCE = -200
+DISCORD_CONFIDENCE = -250
+UNDERDOG_CONFIDENCE = -175
 
 YEAR = 2021
 
@@ -118,7 +118,7 @@ def hasUnderdogValue(teams, market, prediction):
             return False
         oddsQuery, inverted = populate_sheet.returnCorrectGame(queries['data'], teams)
         if oddsQuery == False:
-            print('whoopsie')
+            print('Unable to find current odds for game')
             return False
 
         ml_odds = oddsQuery['h2h']

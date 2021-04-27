@@ -124,7 +124,10 @@ class GameStats:
                     lhpSum += 1
                 count += 1
         except KeyError: pass
-        lhpPercent = round(lhpSum / count, 2)
+        try:
+            lhpPercent = round(lhpSum / count, 2)
+        except ZeroDivisionError:
+            lhpPercent = 0.0
         batStats[BatterStats.LHP] = lhpPercent
 
     # add in pitcher stats
@@ -226,7 +229,7 @@ class GameStats:
             ## data anomaly
             if gmpk == 447959 and pitcher == 592716:
                 pitcher = int(game[team]['pitchers'][1])
-                
+
             lineup = game[team]['batters']
 
             # check if pitcher has pitched in previous game
