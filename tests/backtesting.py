@@ -18,9 +18,9 @@ class Backtest:
     def __init__(self, confidence, amount_per_bet, double_yes, wantScreen):
         self.LIST = extractPickle('twoD_list.pickle', 2021)[150:]
         self.OUTCOMES = extractPickle('outcome_vectors.pickle', 2021)[150:]
-        self.ml_model = tf.keras.models.load_model('models/win_loss.hdf5')
-        self.spread_model = tf.keras.models.load_model('models/spreads_loss.hdf5')
-        self.ou_model = tf.keras.models.load_model('models/ou_loss.hdf5')
+        self.ml_model = tf.keras.models.load_model('past_models/win_loss.hdf5')
+        self.spread_model = tf.keras.models.load_model('past_models/spreads_loss.hdf5')
+        self.ou_model = tf.keras.models.load_model('past_models/ou_loss.hdf5')
         self.confidence = self.convertOddsToPercent(confidence)
         self.amount_per_bet = amount_per_bet
         self.wantScreen = wantScreen
@@ -87,6 +87,8 @@ class Backtest:
             ## normalize first
             for i in range(len(self.LIST)):
                 self.LIST[i] = self.normalize_lst(self.LIST[i])
+                self.LIST[i][2] = 0.5
+                self.LIST[i][31] = 0.5
 
             ## initialize all variables
             day = 0
@@ -133,7 +135,11 @@ class Backtest:
                 ml_predict = self.ml_model.predict([game])
 
 
+
+
                 if ml_predict[0][0] > self.confidence:
+                    if outcome[6] >= 2:
+                        home_bets += 1
                     if outcome[0] == 1:
                         num_ml_success += 1
                         ml_winnings += self.amount_per_bet*outcome[6]*double_val
@@ -141,7 +147,8 @@ class Backtest:
                     num_ml_bets += 1
 
                 if ml_predict[0][1] > self.confidence:
-                    home_bets += 1
+                    if outcome[7] >= 2:
+                        home_bets += 1
                     if outcome[1] == 1:
                         num_ml_success += 1
                         ml_winnings += self.amount_per_bet*outcome[7]*double_val
@@ -152,6 +159,8 @@ class Backtest:
                 spread_predict = self.spread_model.predict([game])
 
                 if spread_predict[0][0] > self.confidence:
+                    if outcome[8] >= 2:
+                        home_spread_bets += 1
                     if outcome[2] == 1:
                         num_spread_success += 1
                         spread_winnings += self.amount_per_bet*outcome[8]
@@ -159,7 +168,8 @@ class Backtest:
                     num_spread_bets += 1
 
                 if spread_predict[0][1] > self.confidence:
-                    home_spread_bets += 1
+                    if outcome[9] >= 2:
+                        home_spread_bets += 1
                     if outcome[3] == 1:
                         num_spread_success += 1
                         spread_winnings += self.amount_per_bet*outcome[9]
@@ -208,7 +218,7 @@ class Backtest:
                     try:
                         stdscr.addstr("ML BETS MADE: {}\n".format(num_ml_bets))
                         stdscr.addstr("ML SUCCESS RATE: {}%\n".format(round((num_ml_success / num_ml_bets)*100, 3)))
-                        stdscr.addstr("ML HOME BET RATE: {}%\n".format(round((home_bets / num_ml_bets)*100, 3)))
+                        stdscr.addstr("ML UNDERDOG BET RATE: {}%\n".format(round((home_bets / num_ml_bets)*100, 3)))
                         stdscr.addstr("AVG WINNINGS: ${}\n".format(round((ml_winnings-(num_ml_success*self.amount_per_bet*self.double_val)) / num_ml_success, 2)))
                     except ZeroDivisionError:
                         pass
@@ -217,7 +227,7 @@ class Backtest:
                     try:
                         stdscr.addstr("SPREAD BETS MADE: {}\n".format(num_spread_bets))
                         stdscr.addstr("SPREAD SUCCESS RATE: {}%\n".format(round((num_spread_success / num_spread_bets)*100, 3)))
-                        stdscr.addstr("HOME SPREAD BET RATE: {}%\n".format(round((home_spread_bets / num_ml_bets)*100, 3)))
+                        stdscr.addstr("-1.5 SPREAD BET RATE: {}%\n".format(round((home_spread_bets / num_spread_bets)*100, 3)))
                         stdscr.addstr("AVG WINNINGS: ${}\n".format(round((spread_winnings-(num_spread_success*self.amount_per_bet)) / num_spread_success, 2)))
                     except ZeroDivisionError:
                         pass
@@ -226,7 +236,7 @@ class Backtest:
                     try:
                         stdscr.addstr("O/U BETS MADE: {}\n".format(num_ou_bets))
                         stdscr.addstr("O/U SUCCESS RATE: {}%\n".format(round((num_ou_success / num_ou_bets)*100, 3)))
-                        stdscr.addstr("UNDER BET RATE: {}%\n".format(round((under_bets / num_ml_bets)*100, 3)))
+                        stdscr.addstr("UNDER BET RATE: {}%\n".format(round((under_bets / num_ou_bets)*100, 3)))
                         stdscr.addstr("AVG WINNINGS: ${}\n".format(round((ou_winnings-(num_ou_success*self.amount_per_bet)) / num_ou_success, 2)))
                     except ZeroDivisionError:
                         pass

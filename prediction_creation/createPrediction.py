@@ -145,7 +145,6 @@ class Predictor:
         self.addBatterStats(batStats, lineup)
 
         # load in pitcher stats
-
         pitchingStats = [0,0,0,0,0,0,0,0,0,0,0,0,0]
         g.addPitcherStats(pitchingStats, pitcherGmpk, pitcher)
 
@@ -207,6 +206,10 @@ class Predictor:
 
         stats['away'] = self.returnTeamStats(lineups['away'], aPitcher, awayLineup, gm)
         stats['home'] = self.returnTeamStats(lineups['home'], hPitcher, homeLineup, gm)
+
+        ## pExpectation not wanted for right now
+        stats['away'][2] = 81.0
+        stats['home'][2] = 81.0
 
         lst = stats['away'] + stats['home']
         return lst

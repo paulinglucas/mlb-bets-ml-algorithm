@@ -144,3 +144,5 @@ send_sms.py
 keys.py
 *.json
 tests/test_files/*
+past_models
+models_temp

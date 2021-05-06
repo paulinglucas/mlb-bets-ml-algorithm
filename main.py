@@ -13,8 +13,8 @@ from createUsableList import ListCreator
 #from os_prep import prep
 
 #missing year 2016
-BEG_YEAR = 2021
-END_YEAR = 2021
+BEG_YEAR = 2014
+END_YEAR = 2020
 
 def main():
     # get directories rolling in system

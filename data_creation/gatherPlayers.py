@@ -37,6 +37,16 @@ class PlayerGatherer:
             score.append("Tie")
             return False
 
+    # get previous game played of player
+    def getPreviousGame(self, batOrPitch, player, gmpk):
+        if batOrPitch == 'Batter':
+            p = self.ALL_BATTERS[player]['gmpksInOrder']
+        else: p = self.ALL_PITCHERS[player]['gmpksInOrder']
+        idx = p.index(gmpk)
+        if idx == 0:
+            return gmpk
+        return p[idx-1]
+
     # gets score of game along with winning team
     def addScore(self, game, gmpk):
         awayRuns = int(game['away']['teamStats']['batting']['runs'])
@@ -181,8 +191,12 @@ class PlayerGatherer:
             self.ALL_PITCHERS[id] = {'currStats': [0,0,0,0,0,0,0,0,0,0,0,0], 'gmpksInOrder': [], 'gmpks': {}}
         self.ALL_PITCHERS[id]['gmpksInOrder'].append(gmpk)
         self.ALL_PITCHERS[id]['gmpks'][gmpk] = {'gamesPlayed': 0, 'wins': 0, 'runs': 0, 'homeRuns': 0, 'strikeOuts': 0, 'baseOnBalls': 0, 'hits': 0, 'atBats': 0, 'obp': 0, 'era': 0, 'inningsPitched': 0, 'blownSaves': 0, 'earnedRuns': 0, 'rbi': 0}
+        hasBP = False
         for player in team['pitchers'][1:]:
+            hasBP = True
             self.updateBullpen(self.ALL_PITCHERS[id], player, team, gmpk)
+        if hasBP == False:
+            self.ALL_PITCHERS[id]['gmpks'][gmpk] = self.ALL_PITCHERS[id]['gmpks'][self.getPreviousGame('Pitcher', id, gmpk)]
 
         # updating team win percentage
         lengthOfGames = len(self.ALL_PITCHERS[id]['gmpksInOrder']) - 2
@@ -215,12 +229,6 @@ class PlayerGatherer:
         if len(team['winsLast10']) == 11:
             del team['winsLast10'][0]
 
-        if team['gmpks'][gmpk]['runsScored'] != 0:
-            team['gmpks'][gmpk]['expectation'] = 162*(1 / (1 + team['gmpks'][gmpk]['runsAllowed'] / team['gmpks'][gmpk]['runsScored'])**1.83)
-        else:
-            # average case
-            team['gmpks'][gmpk]['expectation'] = 81.0
-
         team['runsScored'].append(game['batting']['runs'])
         team['gmpks'][gmpk]['runsScored'] = game['batting']['runs']
         if len(team['runsScored']) == 11:
@@ -240,6 +248,12 @@ class PlayerGatherer:
         else: team['gmpks'][gmpk]['winsLast10'] = 0
         self.rotateThrough10(team, 'runsScored', gmpk)
         self.rotateThrough10(team, 'runsAllowed', gmpk)
+
+        if team['gmpks'][gmpk]['runsScored'] != 0:
+            team['gmpks'][gmpk]['expectation'] = 162*(team['gmpks'][gmpk]['runsScored']**1.83 / (team['gmpks'][gmpk]['runsAllowed']**1.83 + team['gmpks'][gmpk]['runsScored']**1.83))
+        else:
+            # average case
+            team['gmpks'][gmpk]['expectation'] = 81.0
 
         return 0
 

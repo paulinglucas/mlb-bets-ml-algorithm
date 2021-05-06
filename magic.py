@@ -34,7 +34,10 @@ import numpy as np
 DATA_NEW = extractPickle('data_to_use.pickle', 1)
 OUTPUTS_NEW = extractPickle('outputs_to_use.pickle', 1)
 CUTOFF = int(len(DATA_NEW)*0.78)
-FILENAME = 'test_ml.h5'
+FILENAME = 'test_ou.hdf5'
+
+val_data = extractPickle('twoD_list.pickle', 2016)
+val_labels = extractPickle('outcome_vectors.pickle', 2016)
 
 # normalize data
 for i in range(len(DATA_NEW)):
@@ -74,6 +77,45 @@ for i in range(len(DATA_NEW)):
     DATA_NEW[i][53]  = round(DATA_NEW[i][53] / 9, 3)
     DATA_NEW[i][27]  = round(DATA_NEW[i][27] / 114, 3) # RYAN
     DATA_NEW[i][56]  = round(DATA_NEW[i][56] / 114, 3)
+
+# normalize data
+for i in range(len(val_data)):
+    val_data[i][0]  = round(val_data[i][0], 3) # OPS
+    val_data[i][29] = round(val_data[i][29], 3)
+    val_data[i][6]  = round(val_data[i][6] / 4, 3) # OPS
+    val_data[i][35] = round(val_data[i][35] / 4, 3)
+    val_data[i][14]  = round(val_data[i][14] / 4, 3) # OPS L10
+    val_data[i][43] = round(val_data[i][43] / 4, 3)
+    val_data[i][17]  = round(val_data[i][17] / 50, 3) # ERA
+    val_data[i][46]  = round(val_data[i][46] / 50, 3)
+    val_data[i][22]  = round(val_data[i][22] / 20, 3) # bERA
+    val_data[i][51]  = round(val_data[i][51] / 20, 3)
+    val_data[i][18]  = round(val_data[i][18] / 10, 3) # WHIP
+    val_data[i][47]  = round(val_data[i][47] / 10, 3)
+    val_data[i][23]  = round(val_data[i][23] / 10, 3) #  bWHIP
+    val_data[i][52]  = round(val_data[i][52] / 10, 3)
+    val_data[i][2]  = round(val_data[i][2] / 162, 3) # Pexpect
+    val_data[i][31]  = round(val_data[i][31] / 162, 3)
+    val_data[i][7]  = round(val_data[i][7] / 10, 3) # RPG
+    val_data[i][36]  = round(val_data[i][36] / 10, 3)
+    val_data[i][15]  = round(val_data[i][15] / 80, 3) # RPG L10
+    val_data[i][44]  = round(val_data[i][44] / 80, 3)
+    val_data[i][8]  = round(val_data[i][8] / 9, 3) # HRPG
+    val_data[i][37]  = round(val_data[i][37] / 9, 3)
+    val_data[i][9]  = round(val_data[i][9] / 16, 3) # SOPG
+    val_data[i][38]  = round(val_data[i][38] / 16, 3)
+    val_data[i][20]  = round(val_data[i][20] / 27, 3) # SOP9
+    val_data[i][49]  = round(val_data[i][49] / 27, 3)
+    val_data[i][25]  = round(val_data[i][25] / 27, 3) # bSOP9
+    val_data[i][54]  = round(val_data[i][54] / 27, 3)
+    val_data[i][21]  = round(val_data[i][21] / 9, 3) # IPG
+    val_data[i][50]  = round(val_data[i][50] / 9, 3)
+    val_data[i][19]  = round(val_data[i][19] / 9, 3) # HRP9
+    val_data[i][48]  = round(val_data[i][48] / 9, 3)
+    val_data[i][24]  = round(val_data[i][24] / 9, 3) # bHRP9
+    val_data[i][53]  = round(val_data[i][53] / 9, 3)
+    val_data[i][27]  = round(val_data[i][27] / 114, 3) # RYAN
+    val_data[i][56]  = round(val_data[i][56] / 114, 3)
 
 # DATA_NEW = extractPickle('twoD_list.pickle', 2015)
 # OUTPUTS_NEW = extractPickle('outcome_vectors.pickle', 2015)
@@ -174,14 +216,14 @@ def get_model(loss_func, input_dim, output_dim, base=1000, multiplier=0.25, p=0.
     l = tf.keras.layers.Dropout(p)(l)
     n = int(n * multiplier)
     l = tf.keras.layers.Dense(n, activation='relu')(l)
-    outputs = tf.keras.layers.Dense(output_dim, activation='softmax')(l)
+    outputs = tf.keras.layers.Dense(output_dim, activation='sigmoid')(l)
     model = tf.keras.Model(inputs=inputs, outputs=outputs)
 
     # CHANGE THE LOSS FUNCTION TO WHAT YOU WOULD LIKE TO FIND THE OUTCOME OF
     # win_loss : winner of game
     # spreads_loss: spread of game
     # ou_loss: over/under of game
-    model.compile(optimizer='Nadam', loss='binary_crossentropy', metrics=['accuracy'])
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 
     return model
 
@@ -198,12 +240,18 @@ def train_model():
     if loss_func == 'win_loss':
         for r in range(len(OUTPUTS_NEW)):
             OUTPUTS_NEW[r] = OUTPUTS_NEW[r][0:2]
+        for r in range(len(val_labels)):
+            val_labels[r] = val_labels[r][0:2]
     elif loss_func == 'spreads_loss':
         for r in range(len(OUTPUTS_NEW)):
             OUTPUTS_NEW[r] = OUTPUTS_NEW[r][2:4]
+        for r in range(len(val_labels)):
+            val_labels[r] = val_labels[r][2:4]
     elif loss_func == 'ou_loss':
         for r in range(len(OUTPUTS_NEW)):
             OUTPUTS_NEW[r] = OUTPUTS_NEW[r][4:6]
+        for r in range(len(val_labels)):
+            val_labels[r] = val_labels[r][4:6]
     else:
         print("Invalid loss function")
         sys.exit(0)
@@ -213,13 +261,33 @@ def train_model():
     train_labels = OUTPUTS_NEW[:CUTOFF]
     test_labels = OUTPUTS_NEW[CUTOFF:]
 
-    model = get_model(loss_func, 58, 2, base=50, multiplier=0.6)
+    # best_acc, best_base, best_mul = 0, 0, 0
+    #
+    # for i in range(10, 100, 5):
+    #     for j in range(1, 9):
+    #         j_temp = j / 10
+    #         model = get_model(loss_func, 58, 2, base=i, multiplier=j_temp)
+    #         history = model.fit(train_data, train_labels, validation_data=(test_data, test_labels),
+    #                   epochs=200, batch_size=20, callbacks=[tf.keras.callbacks.EarlyStopping(patience=25)])#,tf.keras.callbacks.ModelCheckpoint(hd5file,save_best_only=True)])
+    #         loss, accuracy = model.evaluate(val_data, val_labels)
+    #         if accuracy > best_acc:
+    #             best_acc = accuracy
+    #             best_base = i
+    #             best_mul = j_temp
+    #
+    # print("BEST MODEL ARC:")
+    # print("Accuracy: {}".format(best_acc))
+    # print("Base size: {}".format(best_base))
+    # print("Batch size: {}".format(20))
+    # print("Multiplier: {}".format(best_mul))
+
+    model = get_model(loss_func, 58, 2, base=80, multiplier=0.2)
     hd5file = loss_func + ".hdf5"
     history = model.fit(train_data, train_labels, validation_data=(test_data, test_labels),
-              epochs=200, batch_size=100, callbacks=[tf.keras.callbacks.EarlyStopping(patience=25),tf.keras.callbacks.ModelCheckpoint(hd5file,save_best_only=True)])
-    print('Training Loss : {}\nValidation Loss : {}'.format(model.evaluate(train_data, train_labels), model.evaluate(test_data, test_labels)))
+              epochs=200, batch_size=20, callbacks=[tf.keras.callbacks.EarlyStopping(patience=25),tf.keras.callbacks.ModelCheckpoint(hd5file,save_best_only=True)])
+    print('Training Loss : {}\nValidation Loss : {}'.format(model.evaluate(train_data, train_labels), model.evaluate(val_data, val_labels)))
 
-    model.save('models/' + FILENAME)
+    # model.save('models/' + FILENAME)
 
 if __name__ == '__main__':
     train_model()

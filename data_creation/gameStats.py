@@ -62,9 +62,12 @@ class GameStats:
         with open(SAVE_PATH + str(self.year) + "/" + tm.replace(" ", "_") + ".txt") as f:
             prevLine = None
             for line in f:
-                if line[5:11] == gamepk:
+                if int(line[5:11]) == gamepk:
+                    if prevLine == None:
+                        return None
                     return prevLine[5:11]
                 prevLine = line
+        return -1
 
     # gets game after gamepack param
     def getNextTeamGame(self, tm, gamepk):
@@ -97,7 +100,7 @@ class GameStats:
                 else:
                     statSum += float(self.BATTERS[batter]['gmpks'][batterGmpk][stat])
                 count += 1
-            except:
+            except Exception as e:
                 pass
         if perGame:
             statAvg = round(statSum, 3)
@@ -170,6 +173,7 @@ class GameStats:
         bpName = tm + " Bullpen"
         pitchingStats[PitcherStats.bERA] = float(self.PITCHERS[bpName]['gmpks'][gmpk]['era'])
         if self.PITCHERS[bpName]['gmpks'][gmpk]['inningsPitched'] == 0:
+            # print(bpName, self.PITCHERS[bpName]['gmpks'][gmpk])
             pitchingStats[PitcherStats.bWHIP] = 0.0
             pitchingStats[PitcherStats.bHRP9] = 0.0
             pitchingStats[PitcherStats.bSOP9] = 0.0
@@ -226,11 +230,19 @@ class GameStats:
             prevGmpk = self.getPreviousTeamGame(currTeamName, gmpk)
             pitcher = int(game[team]['pitchers'][0])
 
-            ## data anomaly
+            if prevGmpk == -1:
+                print('bad initial gmpk file for game stats')
+                sys.exit()
+
+            ## data anomalies
             if gmpk == 447959 and pitcher == 592716:
                 pitcher = int(game[team]['pitchers'][1])
+            elif gmpk == 530553 and pitcher == 543475:
+                pitcher = int(game[team]['pitchers'][1])
+            elif gmpk == 531597 and pitcher == 453329:
+                pitcher = int(game[team]['pitchers'][1])
 
-            lineup = game[team]['batters']
+            lineup = game[team]['battingOrder']
 
             # check if pitcher has pitched in previous game
             pitcherGmpk = self.getPreviousGame('Pitcher', pitcher, gmpk)

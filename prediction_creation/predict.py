@@ -118,7 +118,8 @@ def hasUnderdogValue(teams, market, prediction):
             return False
         oddsQuery, inverted = populate_sheet.returnCorrectGame(queries['data'], teams)
         if oddsQuery == False:
-            print('Unable to find current odds for game')
+            print('No odds found for underdog')
+            send_sms.send_confirmation("Unable to find moneyline odds for {} vs {}".format(teams[0], teams[1]))
             return False
 
         ml_odds = oddsQuery['h2h']
@@ -140,7 +141,8 @@ def hasUnderdogValue(teams, market, prediction):
             return False
         oddsQuery, inverted = populate_sheet.returnCorrectGame(queries['data'], teams)
         if oddsQuery == False:
-            print('whoopsie')
+            print('No odds found for underdog')
+            send_sms.send_confirmation("Unable to find spread odds for {} vs {}".format(teams[0], teams[1]))
             return False
 
         spread_odds = oddsQuery['spreads']['odds']
@@ -189,7 +191,7 @@ def main(send_text=False, send_discord=False):
         discord_dict = {'ml': {}, 'spread': {}, 'ou': {}}
         underdog_dict = {'ml': {}, 'spread': {}}
 
-        day = d.today()# - timedelta(days=1)
+        day = d.today() - timedelta(days=1)
         dt = day.strftime('%Y-%m-%d')
 
         ## handle connection errors
@@ -222,6 +224,9 @@ def main(send_text=False, send_discord=False):
 
             lst = np.array(lst)
             lst = lst.reshape(1,-1)
+
+            # print(g['game_id'])
+            # print(lst)
 
             print("PREDICTIONS (ML, SPREAD, O/U)")
             print("[P(away), P(home)]:    ", end='')
