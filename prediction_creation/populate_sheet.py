@@ -30,6 +30,7 @@ def extractMarket(markType):
     return queries
 
 def returnCorrectGame(dict, teams):
+    teams = ['Diamondbacks' if x == 'D-backs' else x for x in teams]
     inverted = False
     for game in dict:
         if (teams[0].lower() in game['teams'][0].lower() or teams[0].lower() in game['teams'][1].lower()) and (teams[1].lower() in game['teams'][0].lower() or teams[1].lower() in game['teams'][1].lower()):
