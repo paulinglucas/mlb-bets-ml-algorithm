@@ -208,8 +208,8 @@ class Predictor:
         stats['home'] = self.returnTeamStats(lineups['home'], hPitcher, homeLineup, gm)
 
         ## pExpectation not wanted for right now
-        stats['away'][2] = 81.0
-        stats['home'][2] = 81.0
+        # stats['away'][2] = 81.0
+        # stats['home'][2] = 81.0
 
         lst = stats['away'] + stats['home']
         return lst
