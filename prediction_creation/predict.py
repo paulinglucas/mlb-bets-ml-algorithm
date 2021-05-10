@@ -191,7 +191,7 @@ def main(send_text=False, send_discord=False):
         discord_dict = {'ml': {}, 'spread': {}, 'ou': {}}
         underdog_dict = {'ml': {}, 'spread': {}}
 
-        day = d.today()# - timedelta(days=1)
+        day = d.today() # - timedelta(days=1)
         dt = day.strftime('%Y-%m-%d')
 
         ## handle connection errors
@@ -225,8 +225,8 @@ def main(send_text=False, send_discord=False):
             lst = np.array(lst)
             lst = lst.reshape(1,-1)
 
-            print(g['game_id'])
-            print(lst)
+            # print(g['game_id'])
+            # print(lst)
 
             print("PREDICTIONS (ML, SPREAD, O/U)")
             print("[P(away), P(home)]:    ", end='')
