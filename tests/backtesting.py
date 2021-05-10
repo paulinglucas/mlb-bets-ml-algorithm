@@ -16,11 +16,11 @@ from magic import win_loss, spreads_loss, ou_loss, loss_accuracy
 
 class Backtest:
     def __init__(self, confidence, amount_per_bet, double_yes, wantScreen):
-        self.LIST = extractPickle('twoD_list.pickle', 2021)[150:]
-        self.OUTCOMES = extractPickle('outcome_vectors.pickle', 2021)[150:]
-        self.ml_model = tf.keras.models.load_model('past_models/win_loss.hdf5')
-        self.spread_model = tf.keras.models.load_model('past_models/spreads_loss.hdf5')
-        self.ou_model = tf.keras.models.load_model('past_models/ou_loss.hdf5')
+        self.LIST = extractPickle('twoD_list.pickle', 2016)[150:]
+        self.OUTCOMES = extractPickle('outcome_vectors.pickle', 2016)[150:]
+        self.ml_model = tf.keras.models.load_model('models/win_loss.hdf5')
+        self.spread_model = tf.keras.models.load_model('models/spreads_loss.hdf5')
+        self.ou_model = tf.keras.models.load_model('models/ou_loss.hdf5')
         self.confidence = self.convertOddsToPercent(confidence)
         self.amount_per_bet = amount_per_bet
         self.wantScreen = wantScreen
@@ -87,8 +87,8 @@ class Backtest:
             ## normalize first
             for i in range(len(self.LIST)):
                 self.LIST[i] = self.normalize_lst(self.LIST[i])
-                self.LIST[i][2] = 0.5
-                self.LIST[i][31] = 0.5
+                # self.LIST[i][2] = 0.5
+                # self.LIST[i][31] = 0.5
 
             ## initialize all variables
             day = 0

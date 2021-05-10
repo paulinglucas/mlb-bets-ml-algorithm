@@ -16,12 +16,12 @@ from magic import win_loss, spreads_loss, ou_loss, loss_accuracy
 
 class Backtest_Underdog:
     def __init__(self, underdog_threshold, amount_per_bet, double_yes, wantScreen):
-        self.LIST = extractPickle('twoD_list.pickle', 2019)[150:]
-        self.OUTCOMES = extractPickle('outcome_vectors.pickle', 2019)[150:]
+        self.LIST = extractPickle('twoD_list.pickle', 2016)[150:]
+        self.OUTCOMES = extractPickle('outcome_vectors.pickle', 2016)[150:]
         self.ml_model = tf.keras.models.load_model('models/win_loss.hdf5', custom_objects={'win_loss': win_loss})
         self.spread_model = tf.keras.models.load_model('models/spreads_loss.hdf5', custom_objects={'spreads_loss': spreads_loss})
         self.ou_model = tf.keras.models.load_model('models/ou_loss.hdf5', custom_objects={'ou_loss': ou_loss})
-        self.threshold = underdog_threshold
+        self.threshold = self.convertOddsToPercent(underdog_threshold)
         self.amount_per_bet = amount_per_bet
         self.wantScreen = wantScreen
         self.double_val = double_yes
@@ -65,6 +65,14 @@ class Backtest_Underdog:
         lst[27]  = round(lst[27] / 114, 3) # RYAN
         lst[56]  = round(lst[56] / 114, 3)
         return lst
+
+    def convertOddsToPercent(self, odds):
+        if odds > 0:
+            return 100 / (odds + 100)
+        if odds < 0:
+            odds = -odds
+            return odds / (odds + 100)
+        return .5
 
     def convertDecimalToPercent(self, odds):
         return (1 / odds)
