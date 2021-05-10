@@ -177,9 +177,9 @@ def checkIfConfident(pred, txtOrDis):
 ## print predictions to console, send text for confident values
 def main(send_text=False, send_discord=False):
                                         #models/ml.h5
-    ml_model = tf.keras.models.load_model('models/win_loss.hdf5', custom_objects={'win_loss': win_loss})
-    spread_model = tf.keras.models.load_model('models/spreads_loss.hdf5', custom_objects={'spreads_loss': spreads_loss})
-    ou_model = tf.keras.models.load_model('models/ou_loss.hdf5', custom_objects={'ou_loss': ou_loss})
+    ml_model = tf.keras.models.load_model('models/win_loss.hdf5') #, custom_objects={'win_loss': win_loss})
+    spread_model = tf.keras.models.load_model('models/spreads_loss.hdf5') #, custom_objects={'spreads_loss': spreads_loss})
+    ou_model = tf.keras.models.load_model('models/ou_loss.hdf5') #, custom_objects={'ou_loss': ou_loss})
 
     print()
     print()
