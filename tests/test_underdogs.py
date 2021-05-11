@@ -18,9 +18,9 @@ class Backtest_Underdog:
     def __init__(self, underdog_threshold, amount_per_bet, double_yes, wantScreen):
         self.LIST = extractPickle('twoD_list.pickle', 2016)[150:]
         self.OUTCOMES = extractPickle('outcome_vectors.pickle', 2016)[150:]
-        self.ml_model = tf.keras.models.load_model('models/win_loss.hdf5', custom_objects={'win_loss': win_loss})
-        self.spread_model = tf.keras.models.load_model('models/spreads_loss.hdf5', custom_objects={'spreads_loss': spreads_loss})
-        self.ou_model = tf.keras.models.load_model('models/ou_loss.hdf5', custom_objects={'ou_loss': ou_loss})
+        self.ml_model = tf.keras.models.load_model('models/win_loss.hdf5')#, custom_objects={'win_loss': win_loss})
+        self.spread_model = tf.keras.models.load_model('models/spreads_loss.hdf5')#, custom_objects={'spreads_loss': spreads_loss})
+        self.ou_model = tf.keras.models.load_model('models/ou_loss.hdf5')#, custom_objects={'ou_loss': ou_loss})
         self.threshold = self.convertOddsToPercent(underdog_threshold)
         self.amount_per_bet = amount_per_bet
         self.wantScreen = wantScreen
@@ -120,6 +120,8 @@ class Backtest_Underdog:
 
             ## ru through each game in the list, updating profits and wins accordingly
             for game, outcome in zip(self.LIST, self.OUTCOMES):
+                game = np.array(game).reshape(1,-1)
+
                 if self.wantScreen:
                     stdscr.erase()
                     ## update days in terminal

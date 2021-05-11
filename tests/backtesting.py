@@ -74,9 +74,17 @@ class Backtest:
             return odds / (odds + 100)
         return .5
 
+    def convertDecimalToPercent(self, odds):
+        return (1 / odds)
+
     def test(self):
         #os.system('clear')
         ## curses initialization
+        total_bet = 0
+        total_won = 0
+        amount_bet = 0
+        amount_won = 0
+
         try:
             if self.wantScreen:
                 stdscr = curses.initscr()
@@ -94,9 +102,6 @@ class Backtest:
             day = 0
             game_num = 0
             double_val = self.double_val
-
-            amount_bet = 0
-            amount_won = 0
 
             num_ml_bets = 0
             num_ml_success = 0
@@ -121,9 +126,10 @@ class Backtest:
             munnies = []
             munnies_made = []
 
-
             ## ru through each game in the list, updating profits and wins accordingly
             for game, outcome in zip(self.LIST, self.OUTCOMES):
+                game = np.array(game).reshape(1,-1)
+
                 game_num += 1
                 if self.wantScreen:
                     stdscr.erase()
@@ -137,7 +143,7 @@ class Backtest:
 
 
 
-                if ml_predict[0][0] > self.confidence:
+                if ml_predict[0][0] > self.confidence and ml_predict[0][0] > self.convertDecimalToPercent(outcome[6]):
                     if outcome[6] >= 2:
                         home_bets += 1
                     if outcome[0] == 1:
@@ -146,7 +152,7 @@ class Backtest:
                     ml_money += self.amount_per_bet*double_val
                     num_ml_bets += 1
 
-                if ml_predict[0][1] > self.confidence:
+                if ml_predict[0][1] > self.confidence and ml_predict[0][1] > self.convertDecimalToPercent(outcome[7]):
                     if outcome[7] >= 2:
                         home_bets += 1
                     if outcome[1] == 1:
@@ -158,7 +164,7 @@ class Backtest:
                 ## spread
                 spread_predict = self.spread_model.predict([game])
 
-                if spread_predict[0][0] > self.confidence:
+                if spread_predict[0][0] > self.confidence and spread_predict[0][0] > self.convertDecimalToPercent(outcome[8]):
                     if outcome[8] >= 2:
                         home_spread_bets += 1
                     if outcome[2] == 1:
@@ -167,7 +173,7 @@ class Backtest:
                     spread_money += self.amount_per_bet
                     num_spread_bets += 1
 
-                if spread_predict[0][1] > self.confidence:
+                if spread_predict[0][1] > self.confidence and spread_predict[0][1] > self.convertDecimalToPercent(outcome[9]):
                     if outcome[9] >= 2:
                         home_spread_bets += 1
                     if outcome[3] == 1:
@@ -179,14 +185,14 @@ class Backtest:
                 ## o/u
                 ou_predict = self.ou_model.predict([game])
 
-                if ou_predict[0][0] > self.confidence:
+                if ou_predict[0][0] > self.confidence and ou_predict[0][0] > self.convertDecimalToPercent(outcome[10]):
                     if outcome[4] == 1:
                         num_ou_success += 1
                         ou_winnings += self.amount_per_bet*outcome[10]
                     ou_money += self.amount_per_bet
                     num_ou_bets += 1
 
-                if ou_predict[0][1] > self.confidence:
+                if ou_predict[0][1] > self.confidence and ou_predict[0][1] > self.convertDecimalToPercent(outcome[11]):
                     under_bets += 1
                     if outcome[5] == 1:
                         num_ou_success += 1
@@ -264,8 +270,9 @@ class Backtest:
 
             plt.tight_layout()
             plt.show()
-        except (KeyboardInterrupt, Exception):
-            pass
+        except (KeyboardInterrupt, Exception) as e:
+            print('try failed')
+            print(e)
         if self.wantScreen:
             curses.curs_set(1)
             curses.echo()

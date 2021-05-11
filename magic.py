@@ -31,91 +31,46 @@ from tensorflow import keras
 from gatherPlayers import extractPickle
 import numpy as np
 
-DATA_NEW = extractPickle('data_to_use.pickle', 1)
-OUTPUTS_NEW = extractPickle('outputs_to_use.pickle', 1)
-CUTOFF = int(len(DATA_NEW)*0.78)
-FILENAME = 'test_ou.hdf5'
-
-val_data = extractPickle('twoD_list.pickle', 2016)
-val_labels = extractPickle('outcome_vectors.pickle', 2016)
-
 # normalize data
-for i in range(len(DATA_NEW)):
-    DATA_NEW[i][0]  = round(DATA_NEW[i][0], 3) # OPS
-    DATA_NEW[i][29] = round(DATA_NEW[i][29], 3)
-    DATA_NEW[i][6]  = round(DATA_NEW[i][6] / 4, 3) # OPS
-    DATA_NEW[i][35] = round(DATA_NEW[i][35] / 4, 3)
-    DATA_NEW[i][14]  = round(DATA_NEW[i][14] / 4, 3) # OPS L10
-    DATA_NEW[i][43] = round(DATA_NEW[i][43] / 4, 3)
-    DATA_NEW[i][17]  = round(DATA_NEW[i][17] / 50, 3) # ERA
-    DATA_NEW[i][46]  = round(DATA_NEW[i][46] / 50, 3)
-    DATA_NEW[i][22]  = round(DATA_NEW[i][22] / 20, 3) # bERA
-    DATA_NEW[i][51]  = round(DATA_NEW[i][51] / 20, 3)
-    DATA_NEW[i][18]  = round(DATA_NEW[i][18] / 10, 3) # WHIP
-    DATA_NEW[i][47]  = round(DATA_NEW[i][47] / 10, 3)
-    DATA_NEW[i][23]  = round(DATA_NEW[i][23] / 10, 3) #  bWHIP
-    DATA_NEW[i][52]  = round(DATA_NEW[i][52] / 10, 3)
-    DATA_NEW[i][2]  = round(DATA_NEW[i][2] / 162, 3) # Pexpect
-    DATA_NEW[i][31]  = round(DATA_NEW[i][31] / 162, 3)
-    DATA_NEW[i][7]  = round(DATA_NEW[i][7] / 10, 3) # RPG
-    DATA_NEW[i][36]  = round(DATA_NEW[i][36] / 10, 3)
-    DATA_NEW[i][15]  = round(DATA_NEW[i][15] / 80, 3) # RPG L10
-    DATA_NEW[i][44]  = round(DATA_NEW[i][44] / 80, 3)
-    DATA_NEW[i][8]  = round(DATA_NEW[i][8] / 9, 3) # HRPG
-    DATA_NEW[i][37]  = round(DATA_NEW[i][37] / 9, 3)
-    DATA_NEW[i][9]  = round(DATA_NEW[i][9] / 16, 3) # SOPG
-    DATA_NEW[i][38]  = round(DATA_NEW[i][38] / 16, 3)
-    DATA_NEW[i][20]  = round(DATA_NEW[i][20] / 27, 3) # SOP9
-    DATA_NEW[i][49]  = round(DATA_NEW[i][49] / 27, 3)
-    DATA_NEW[i][25]  = round(DATA_NEW[i][25] / 27, 3) # bSOP9
-    DATA_NEW[i][54]  = round(DATA_NEW[i][54] / 27, 3)
-    DATA_NEW[i][21]  = round(DATA_NEW[i][21] / 9, 3) # IPG
-    DATA_NEW[i][50]  = round(DATA_NEW[i][50] / 9, 3)
-    DATA_NEW[i][19]  = round(DATA_NEW[i][19] / 9, 3) # HRP9
-    DATA_NEW[i][48]  = round(DATA_NEW[i][48] / 9, 3)
-    DATA_NEW[i][24]  = round(DATA_NEW[i][24] / 9, 3) # bHRP9
-    DATA_NEW[i][53]  = round(DATA_NEW[i][53] / 9, 3)
-    DATA_NEW[i][27]  = round(DATA_NEW[i][27] / 114, 3) # RYAN
-    DATA_NEW[i][56]  = round(DATA_NEW[i][56] / 114, 3)
-
-# normalize data
-for i in range(len(val_data)):
-    val_data[i][0]  = round(val_data[i][0], 3) # OPS
-    val_data[i][29] = round(val_data[i][29], 3)
-    val_data[i][6]  = round(val_data[i][6] / 4, 3) # OPS
-    val_data[i][35] = round(val_data[i][35] / 4, 3)
-    val_data[i][14]  = round(val_data[i][14] / 4, 3) # OPS L10
-    val_data[i][43] = round(val_data[i][43] / 4, 3)
-    val_data[i][17]  = round(val_data[i][17] / 50, 3) # ERA
-    val_data[i][46]  = round(val_data[i][46] / 50, 3)
-    val_data[i][22]  = round(val_data[i][22] / 20, 3) # bERA
-    val_data[i][51]  = round(val_data[i][51] / 20, 3)
-    val_data[i][18]  = round(val_data[i][18] / 10, 3) # WHIP
-    val_data[i][47]  = round(val_data[i][47] / 10, 3)
-    val_data[i][23]  = round(val_data[i][23] / 10, 3) #  bWHIP
-    val_data[i][52]  = round(val_data[i][52] / 10, 3)
-    val_data[i][2]  = round(val_data[i][2] / 162, 3) # Pexpect
-    val_data[i][31]  = round(val_data[i][31] / 162, 3)
-    val_data[i][7]  = round(val_data[i][7] / 10, 3) # RPG
-    val_data[i][36]  = round(val_data[i][36] / 10, 3)
-    val_data[i][15]  = round(val_data[i][15] / 80, 3) # RPG L10
-    val_data[i][44]  = round(val_data[i][44] / 80, 3)
-    val_data[i][8]  = round(val_data[i][8] / 9, 3) # HRPG
-    val_data[i][37]  = round(val_data[i][37] / 9, 3)
-    val_data[i][9]  = round(val_data[i][9] / 16, 3) # SOPG
-    val_data[i][38]  = round(val_data[i][38] / 16, 3)
-    val_data[i][20]  = round(val_data[i][20] / 27, 3) # SOP9
-    val_data[i][49]  = round(val_data[i][49] / 27, 3)
-    val_data[i][25]  = round(val_data[i][25] / 27, 3) # bSOP9
-    val_data[i][54]  = round(val_data[i][54] / 27, 3)
-    val_data[i][21]  = round(val_data[i][21] / 9, 3) # IPG
-    val_data[i][50]  = round(val_data[i][50] / 9, 3)
-    val_data[i][19]  = round(val_data[i][19] / 9, 3) # HRP9
-    val_data[i][48]  = round(val_data[i][48] / 9, 3)
-    val_data[i][24]  = round(val_data[i][24] / 9, 3) # bHRP9
-    val_data[i][53]  = round(val_data[i][53] / 9, 3)
-    val_data[i][27]  = round(val_data[i][27] / 114, 3) # RYAN
-    val_data[i][56]  = round(val_data[i][56] / 114, 3)
+def normalize_lst(lst):
+    for i in range(len(lst)):
+        lst[i][0]  = round(lst[i][0], 3) # OPS
+        lst[i][29] = round(lst[i][29], 3)
+        lst[i][6]  = round(lst[i][6] / 4, 3) # OPS
+        lst[i][35] = round(lst[i][35] / 4, 3)
+        lst[i][14]  = round(lst[i][14] / 4, 3) # OPS L10
+        lst[i][43] = round(lst[i][43] / 4, 3)
+        lst[i][17]  = round(lst[i][17] / 50, 3) # ERA
+        lst[i][46]  = round(lst[i][46] / 50, 3)
+        lst[i][22]  = round(lst[i][22] / 20, 3) # bERA
+        lst[i][51]  = round(lst[i][51] / 20, 3)
+        lst[i][18]  = round(lst[i][18] / 10, 3) # WHIP
+        lst[i][47]  = round(lst[i][47] / 10, 3)
+        lst[i][23]  = round(lst[i][23] / 10, 3) #  bWHIP
+        lst[i][52]  = round(lst[i][52] / 10, 3)
+        lst[i][2]  = round(lst[i][2] / 162, 3) # Pexpect
+        lst[i][31]  = round(lst[i][31] / 162, 3)
+        lst[i][7]  = round(lst[i][7] / 10, 3) # RPG
+        lst[i][36]  = round(lst[i][36] / 10, 3)
+        lst[i][15]  = round(lst[i][15] / 80, 3) # RPG L10
+        lst[i][44]  = round(lst[i][44] / 80, 3)
+        lst[i][8]  = round(lst[i][8] / 9, 3) # HRPG
+        lst[i][37]  = round(lst[i][37] / 9, 3)
+        lst[i][9]  = round(lst[i][9] / 16, 3) # SOPG
+        lst[i][38]  = round(lst[i][38] / 16, 3)
+        lst[i][20]  = round(lst[i][20] / 27, 3) # SOP9
+        lst[i][49]  = round(lst[i][49] / 27, 3)
+        lst[i][25]  = round(lst[i][25] / 27, 3) # bSOP9
+        lst[i][54]  = round(lst[i][54] / 27, 3)
+        lst[i][21]  = round(lst[i][21] / 9, 3) # IPG
+        lst[i][50]  = round(lst[i][50] / 9, 3)
+        lst[i][19]  = round(lst[i][19] / 9, 3) # HRP9
+        lst[i][48]  = round(lst[i][48] / 9, 3)
+        lst[i][24]  = round(lst[i][24] / 9, 3) # bHRP9
+        lst[i][53]  = round(lst[i][53] / 9, 3)
+        lst[i][27]  = round(lst[i][27] / 114, 3) # RYAN
+        lst[i][56]  = round(lst[i][56] / 114, 3)
+    return lst
 
 # DATA_NEW = extractPickle('twoD_list.pickle', 2015)
 # OUTPUTS_NEW = extractPickle('outcome_vectors.pickle', 2015)
@@ -228,6 +183,16 @@ def get_model(loss_func, input_dim, output_dim, base=1000, multiplier=0.25, p=0.
     return model
 
 def train_model():
+    DATA_NEW = extractPickle('data_to_use.pickle', 1)
+    OUTPUTS_NEW = extractPickle('outputs_to_use.pickle', 1)
+    CUTOFF = int(len(DATA_NEW)*0.78)
+    FILENAME = 'test_ou.hdf5'
+
+    val_data = extractPickle('twoD_list.pickle', 2016)
+    val_labels = extractPickle('outcome_vectors.pickle', 2016)
+
+    val_data = normalize_lst(val_data)
+    DATA_NEW = normalize_lst(DATA_NEW)
 
     print("Enter loss function you wish to train with:")
     print("win_loss: train model to predict winners of future games")
@@ -256,10 +221,12 @@ def train_model():
         print("Invalid loss function")
         sys.exit(0)
 
-    train_data = DATA_NEW[:CUTOFF]
-    test_data = DATA_NEW[CUTOFF:]
-    train_labels = OUTPUTS_NEW[:CUTOFF]
-    test_labels = OUTPUTS_NEW[CUTOFF:]
+    train_data = np.array(DATA_NEW[:CUTOFF])
+    test_data = np.array(DATA_NEW[CUTOFF:])
+    train_labels = np.array(OUTPUTS_NEW[:CUTOFF])
+    test_labels = np.array(OUTPUTS_NEW[CUTOFF:])
+    val_data = np.array(val_data)
+    val_labels = np.array(val_labels)
 
     # best_acc, best_base, best_mul = 0, 0, 0
     #
@@ -281,11 +248,26 @@ def train_model():
     # print("Batch size: {}".format(20))
     # print("Multiplier: {}".format(best_mul))
 
-    model = get_model(loss_func, 58, 2, base=80, multiplier=0.2)
-    hd5file = loss_func + ".hdf5"
-    history = model.fit(train_data, train_labels, validation_data=(test_data, test_labels),
-              epochs=200, batch_size=20, callbacks=[tf.keras.callbacks.EarlyStopping(patience=25),tf.keras.callbacks.ModelCheckpoint(hd5file,save_best_only=True)])
-    print('Training Loss : {}\nValidation Loss : {}'.format(model.evaluate(train_data, train_labels), model.evaluate(val_data, val_labels)))
+    accs = []
+
+    try:
+        while True:
+            model = get_model(loss_func, 58, 2, base=80, multiplier=0.2)
+            hd5file = loss_func + ".hdf5"
+            history = model.fit(train_data, train_labels, validation_data=(test_data, test_labels),
+                      epochs=200, batch_size=20, callbacks=[tf.keras.callbacks.EarlyStopping(patience=25),tf.keras.callbacks.ModelCheckpoint(hd5file,save_best_only=True)])
+            loss, acc = model.evaluate(val_data, val_labels)
+            accs.append(acc)
+            print('Training Loss : {}\nValidation Loss : {}'.format(model.evaluate(train_data, train_labels), [loss, acc]))
+            if acc > 0.55:
+                sys.exit(0)
+    except KeyboardInterrupt:
+        print()
+        print("Best: {}".format(max(accs)))
+        print()
+        sys.exit(0)
+
+
 
     # model.save('models/' + FILENAME)
 
