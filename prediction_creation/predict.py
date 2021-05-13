@@ -95,6 +95,8 @@ def parsePrediction(predict):
         away = "___"
     if home == -1:
         home = "___"
+    if str(away) == "___" and str(home) == "___":
+        return "-100,___"
     return str(away) + "," + str(home)
 
 def hasUnderdogValue(teams, market, prediction):
