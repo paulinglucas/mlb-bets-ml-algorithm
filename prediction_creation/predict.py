@@ -28,9 +28,9 @@ from send_to_discord import send_message_to_discord
 from send_to_discord import send_underdogs_to_discord
 
 CONFIDENCE_VALUE = -10000
-TEXT_CONFIDENCE = -200
-DISCORD_CONFIDENCE = -200
-UNDERDOG_CONFIDENCE = -175
+TEXT_CONFIDENCE = -180
+DISCORD_CONFIDENCE = -180
+UNDERDOG_CONFIDENCE = -150
 
 YEAR = 2021
 
