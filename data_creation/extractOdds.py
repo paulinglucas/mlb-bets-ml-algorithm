@@ -96,9 +96,14 @@ class OddsExtractor:
                 odds[i] = 1 + (odds[i] / 100)
         return odds
 
+    def getFirstInningOutcome(self, line, homeLine):
+        if int(line[5]) + int(homeLine[5]) > 0:
+            return [1,0]
+        return [0,1]
+
     def matchGmpkToLine(self, gmpk, dict):
         oddsDate = self.getDate(dict)
-        gmpkOdds = {'away': [], 'home': []}
+        gmpkOdds = {'away': [], 'home': [], 'scoreFirst': []}
 
         with open("references/" + str(self.year) + "/mlb_odds_" + str(self.year) + ".csv", "r") as f:
             f.readline()
@@ -122,6 +127,10 @@ class OddsExtractor:
                 homeLine = f.readline().strip().split(",")
                 line = self.makeNumbers(line)
                 homeLine = self.makeNumbers(homeLine)
+
+                ## do they score in first inning
+                gmpkOdds['scoreFirst'] = self.getFirstInningOutcome(line, homeLine)
+
                 line = line[16:23]
                 del line[3]
                 del line[3]

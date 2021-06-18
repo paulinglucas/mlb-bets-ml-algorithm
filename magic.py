@@ -178,6 +178,7 @@ def get_model(loss_func, input_dim, output_dim, base=1000, multiplier=0.25, p=0.
     # win_loss : winner of game
     # spreads_loss: spread of game
     # ou_loss: over/under of game
+    # first_inning_loss: score in first inning
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 
     return model
@@ -198,6 +199,7 @@ def train_model():
     print("win_loss: train model to predict winners of future games")
     print("spreads_loss: train model to predict who will cover spread of games")
     print("ou_loss: train model to predict if game will meet over/under")
+    print("first_inning_loss: train model to predict if first inning will score")
     print()
 
     loss_func = input("Enter loss function: ")
@@ -217,16 +219,25 @@ def train_model():
             OUTPUTS_NEW[r] = OUTPUTS_NEW[r][4:6]
         for r in range(len(val_labels)):
             val_labels[r] = val_labels[r][4:6]
+    elif loss_func == 'first_inning_loss':
+        for r in range(len(OUTPUTS_NEW)):
+            DATA_NEW[r] = DATA_NEW[r][:22] + DATA_NEW[r][27:51] + DATA_NEW[r][56:]
+            OUTPUTS_NEW[r] = OUTPUTS_NEW[r][12:]
+        for r in range(len(val_labels)):
+            val_data[r] = val_data[r][:22] + val_data[r][27:51] + val_data[r][56:]
+            val_labels[r] = val_labels[r][12:]
     else:
         print("Invalid loss function")
         sys.exit(0)
 
     train_data = np.array(DATA_NEW[:CUTOFF])
     test_data = np.array(DATA_NEW[CUTOFF:])
+    val_data = np.array(val_data)
+
     train_labels = np.array(OUTPUTS_NEW[:CUTOFF])
     test_labels = np.array(OUTPUTS_NEW[CUTOFF:])
-    val_data = np.array(val_data)
     val_labels = np.array(val_labels)
+
 
     # best_acc, best_base, best_mul = 0, 0, 0
     #
@@ -248,28 +259,56 @@ def train_model():
     # print("Batch size: {}".format(20))
     # print("Multiplier: {}".format(best_mul))
 
-    accs = []
+    model, acc, base, mul = find_best_model(loss_func, train_data, train_labels, test_data, test_labels, val_data, val_labels)
 
-    try:
-        while True:
-            model = get_model(loss_func, 58, 2, base=80, multiplier=0.2)
-            hd5file = loss_func + ".hdf5"
-            history = model.fit(train_data, train_labels, validation_data=(test_data, test_labels),
-                      epochs=200, batch_size=20, callbacks=[tf.keras.callbacks.EarlyStopping(patience=25),tf.keras.callbacks.ModelCheckpoint(hd5file,save_best_only=True)])
-            loss, acc = model.evaluate(val_data, val_labels)
-            accs.append(acc)
-            print('Training Loss : {}\nValidation Loss : {}'.format(model.evaluate(train_data, train_labels), [loss, acc]))
-            if acc > 0.55:
-                sys.exit(0)
-    except KeyboardInterrupt:
-        print()
-        print("Best: {}".format(max(accs)))
-        print()
-        sys.exit(0)
+    model.save('models_temp/best_{}.hdf5'.format(loss_func))
+
+    print()
+    print("Accuracy: {}".format(acc))
+    print("Base: {}, Multiplier: {}".format(base, mul))
+    print()
+
+    return 0
+
+def validate_model(loss_func, train_data, train_labels, test_data, test_labels, val_data, val_labels, base_, mul_):
+    input_size = 58
+    if loss_func == 'first_inning_loss':
+        input_size = 48
+    model = get_model(loss_func, input_size, 2, base=base_, multiplier=mul_)
+    hd5file = loss_func + ".hdf5"
+
+    print("Now training {} model".format(loss_func))
+    print("Current base: {}".format(base_))
+    print("Current multiplier: {}".format(mul_))
+    print()
+
+    history = model.fit(train_data, train_labels, validation_data=(test_data, test_labels),
+              epochs=200, batch_size=20, callbacks=[tf.keras.callbacks.EarlyStopping(patience=25),tf.keras.callbacks.ModelCheckpoint(hd5file,save_best_only=True)])
+    loss, acc = model.evaluate(val_data, val_labels)
+    print('Training Loss : {}\nValidation Loss : {}'.format(model.evaluate(train_data, train_labels), [loss, acc]))
+    return model, loss, acc
 
 
+def find_best_model(loss_func, train_data, train_labels, test_data, test_labels, val_data, val_labels):
+    best_acc = 0
+    curr_base = 0
+    curr_mul = 0
+    model = -1
+    for i in range(40, 101, 5):
+        for j in range(20, 91, 10):
+            for k in range(3):
+                print("Best Accuracy: {}%".format(round(best_acc, 2)))
+                model, loss, acc = validate_model(loss_func, train_data, train_labels, test_data, test_labels, val_data, val_labels, i, (j/100))
+                if acc > best_acc:
+                    best_model = model
+                    best_acc = acc
+                    curr_base = i
+                    curr_mul = (j/100)
+    return best_model, best_acc, curr_base, curr_mul
 
-    # model.save('models/' + FILENAME)
 
 if __name__ == '__main__':
     train_model()
+
+    # ml:
+    # 85, 0.6

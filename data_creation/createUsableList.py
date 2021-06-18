@@ -96,8 +96,8 @@ class ListCreator:
                     output_vector[5] = 1
                 # order: away, home, away spread, home spread, over, under
                 odds_vector = [awayGameOdds[0], homeGameOdds[0], awayGameOdds[2], homeGameOdds[2], awayGameOdds[4], homeGameOdds[4]]
-                # vector: first 6 outcome, next 6 odds
-                output_vector = output_vector + odds_vector
+                # vector: first 6 outcome, next 6 odds, next 2 score first or not (0,1 no, 1,0 yes)
+                output_vector = output_vector + odds_vector + self.ODDS[gmpk]['scoreFirst']
                 for i in range(12):
                     output_vector[i] = float(output_vector[i])
                 outputLst.append(output_vector)

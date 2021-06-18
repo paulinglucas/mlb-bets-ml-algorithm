@@ -18,10 +18,10 @@ class Backtest:
     def __init__(self, confidence, amount_per_bet, double_yes, wantScreen):
         self.LIST = extractPickle('twoD_list.pickle', 2016)[150:]
         self.OUTCOMES = extractPickle('outcome_vectors.pickle', 2016)[150:]
-        self.ml_model = tf.keras.models.load_model('models_temp/best_win_loss.hdf5')
+        self.ml_model = tf.keras.models.load_model('models/win_loss.hdf5')
         self.spread_model = tf.keras.models.load_model('models/spreads_loss.hdf5')
         self.ou_model = tf.keras.models.load_model('models/ou_loss.hdf5')
-        self.confidence = self.convertOddsToPercent(confidence)
+        self.confidence = confidence / 100
         self.amount_per_bet = amount_per_bet
         self.wantScreen = wantScreen
         self.double_val = double_yes
@@ -143,7 +143,7 @@ class Backtest:
 
 
 
-                if ml_predict[0][0] > self.confidence and ml_predict[0][0] > self.convertDecimalToPercent(outcome[6]):
+                if ml_predict[0][0] > self.convertDecimalToPercent(outcome[6]) + self.confidence:
                     if outcome[6] >= 2:
                         home_bets += 1
                     if outcome[0] == 1:
@@ -152,7 +152,7 @@ class Backtest:
                     ml_money += self.amount_per_bet*double_val
                     num_ml_bets += 1
 
-                if ml_predict[0][1] > self.confidence and ml_predict[0][1] > self.convertDecimalToPercent(outcome[7]):
+                if ml_predict[0][1] > self.convertDecimalToPercent(outcome[7]) + self.confidence:
                     if outcome[7] >= 2:
                         home_bets += 1
                     if outcome[1] == 1:
@@ -164,7 +164,7 @@ class Backtest:
                 ## spread
                 spread_predict = self.spread_model.predict([game])
 
-                if spread_predict[0][0] > self.confidence and spread_predict[0][0] > self.convertDecimalToPercent(outcome[8]):
+                if spread_predict[0][0] > self.convertDecimalToPercent(outcome[8]) + self.confidence:
                     if outcome[8] >= 2:
                         home_spread_bets += 1
                     if outcome[2] == 1:
@@ -173,7 +173,7 @@ class Backtest:
                     spread_money += self.amount_per_bet
                     num_spread_bets += 1
 
-                if spread_predict[0][1] > self.confidence and spread_predict[0][1] > self.convertDecimalToPercent(outcome[9]):
+                if spread_predict[0][1] > self.convertDecimalToPercent(outcome[9]) + self.confidence:
                     if outcome[9] >= 2:
                         home_spread_bets += 1
                     if outcome[3] == 1:
@@ -185,14 +185,14 @@ class Backtest:
                 ## o/u
                 ou_predict = self.ou_model.predict([game])
 
-                if ou_predict[0][0] > self.confidence and ou_predict[0][0] > self.convertDecimalToPercent(outcome[10]):
+                if ou_predict[0][0] > self.convertDecimalToPercent(outcome[10]) + self.confidence:
                     if outcome[4] == 1:
                         num_ou_success += 1
                         ou_winnings += self.amount_per_bet*outcome[10]
                     ou_money += self.amount_per_bet
                     num_ou_bets += 1
 
-                if ou_predict[0][1] > self.confidence and ou_predict[0][1] > self.convertDecimalToPercent(outcome[11]):
+                if ou_predict[0][1] > self.convertDecimalToPercent(outcome[11]) + self.confidence:
                     under_bets += 1
                     if outcome[5] == 1:
                         num_ou_success += 1
@@ -283,7 +283,7 @@ class Backtest:
 
 if __name__ == '__main__':
     if len(sys.argv) != 4:
-        print("USAGE: python3 backtesting.py [CONFIDENCE_VALUE] [AMOUNT_PER_BET] [DOUBLE MONEYLINE BET (1 for no, 2 for yes)]")
+        print("USAGE: python3 backtesting.py [CONFIDENCE_VALUE (in percent)] [AMOUNT_PER_BET] [DOUBLE MONEYLINE BET (1 for no, 2 for yes)]")
         sys.exit(0)
 
     Backtest(int(sys.argv[1]), float(sys.argv[2]), int(sys.argv[3]), wantScreen=True).test()
