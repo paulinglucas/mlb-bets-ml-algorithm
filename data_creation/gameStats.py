@@ -94,6 +94,8 @@ class GameStats:
         for batter in lineup:
             try:
                 batterGmpk = self.getPreviousGame('Batter', batter, gmpk)
+                if not self.BATTERS[batter]['gmpks'][batterGmpk]:
+                    continue
                 if perGame:
                     statForGame = float(self.BATTERS[batter]['gmpks'][batterGmpk][stat]) / self.BATTERS[batter]['gmpks'][batterGmpk]['gamesPlayed']
                     statSum += statForGame

@@ -121,23 +121,23 @@ def setUpGamepks(year):
 # do data creation and updating throughout the year
 def main():
     setUpGamepks(YEAR)
-
-    # puts all players into dictionary pickle files,
-    # separated by batting and pitching stats
+    #
+    # # puts all players into dictionary pickle files,
+    # # separated by batting and pitching stats
     pg = players.PlayerGatherer(YEAR)
     pg.gatherStats()
-
-    # creates team stats leading up to every mlb game ... 2426 games in total
+    #
+    # # creates team stats leading up to every mlb game ... 2426 games in total
     stats = stat.GameStats(YEAR)
     stats.addInAllStats()
 
-    # # get odds of every game, one seemed to not have any ... 2425 game odds
+    # get odds of every game, one seemed to not have any ... 2425 game odds
     # o = odds.OddsExtractor(YEAR)
     # o.extractAllOdds()
 
     # create lists to load into machine learning algorithm
-    l = lst.ListCreator(YEAR)
-    l.addToList()
+    # l = lst.ListCreator(YEAR)
+    # l.addToList()
     # l.checkOdds()
     # l.spread()
 

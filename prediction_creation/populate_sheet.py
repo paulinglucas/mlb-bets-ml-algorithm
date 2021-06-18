@@ -294,15 +294,15 @@ def updateSpreadsheets(my_conf, their_conf, under_conf, msg, dict):
 
     # get the instance of the Spreadsheet
     sheet = client.open('920 Beats Books Spreadsheet')
-    my_sheet = client.open('MLB Sheet 2021')
-    under_sheet = client.open('MLB Underdog Spreadsheet')
+    #my_sheet = client.open('MLB Sheet 2021')
+    #under_sheet = client.open('MLB Underdog Spreadsheet')
 
     msg = parseMessage(msg)
-    dict_msg = parseDict(dict)
+    #dict_msg = parseDict(dict)
 
     editSheet(sheet, msg, their_conf, 100)
-    editSheet(my_sheet, msg, my_conf, 300, 2)
-    editSheet(under_sheet, dict_msg, under_conf, 100)
+    #editSheet(my_sheet, msg, my_conf, 300, 2)
+    #editSheet(under_sheet, dict_msg, under_conf, 100)
 
     return 1
 

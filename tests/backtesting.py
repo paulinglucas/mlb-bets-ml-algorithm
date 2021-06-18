@@ -18,7 +18,7 @@ class Backtest:
     def __init__(self, confidence, amount_per_bet, double_yes, wantScreen):
         self.LIST = extractPickle('twoD_list.pickle', 2016)[150:]
         self.OUTCOMES = extractPickle('outcome_vectors.pickle', 2016)[150:]
-        self.ml_model = tf.keras.models.load_model('models_temp/best_win_loss.hdf5')
+        self.ml_model = tf.keras.models.load_model('models/win_loss.hdf5')
         self.spread_model = tf.keras.models.load_model('models/spreads_loss.hdf5')
         self.ou_model = tf.keras.models.load_model('models/ou_loss.hdf5')
         self.confidence = self.convertOddsToPercent(confidence)

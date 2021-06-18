@@ -41,6 +41,11 @@ class Last10:
         count = 0
         p = self.BATTERS[player]['gmpks']
         while currGame != prevGame and count < 10:
+            if not p[currGame]:
+                temp = currGame
+                currGame = prevGame
+                prevGame = self.getPreviousGame("Batter", player, temp)
+                continue
             sum += float(p[currGame][stat])
             count += 1
             temp = currGame

@@ -108,6 +108,13 @@ class PlayerGatherer:
         innings = floor(innings) + toAdd
         return innings
 
+    def getNumGames(self, dic):
+        count = 0
+        for x in dic.values():
+            if x:
+                count += 1
+        return count
+
     # add current game as game played for all players who had at bats or
     # threw any pitches, place in respective data type
     def addCurrentSeasonStats(self, playerList, gmpk):
@@ -118,7 +125,11 @@ class PlayerGatherer:
                 self.ALL_BATTERS[p['person']['id']]['gmpksInOrder'].append(gmpk)
                 playerGames = self.ALL_BATTERS[p['person']['id']]['gmpks']
                 currentGame = playerGames[gmpk] = p['seasonStats']['batting']
-                currentGame['gamesPlayed'] = len(playerGames)
+                currentGame['gamesPlayed'] = self.getNumGames(playerGames)
+            elif len(pBats) > 0:
+                self.ALL_BATTERS[p['person']['id']]['gmpksInOrder'].append(gmpk)
+                playerGames = self.ALL_BATTERS[p['person']['id']]['gmpks']
+                currentGame = playerGames[gmpk] = None
             pThrows = p['stats']['pitching']
             if len(pThrows) > 0 and pThrows['pitchesThrown'] > 0:
                 self.ALL_PITCHERS[p['person']['id']]['gmpksInOrder'].append(gmpk)

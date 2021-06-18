@@ -31,6 +31,7 @@ CONFIDENCE_VALUE = -10000
 TEXT_CONFIDENCE = -180
 DISCORD_CONFIDENCE = -180
 UNDERDOG_CONFIDENCE = -150
+VALUE_THRESHOLD = 0.12
 
 YEAR = 2021
 
@@ -87,6 +88,14 @@ def convertPercentToOdds(percent):
     else:
         return -1
 
+def convertOddsToPercent(odds):
+    if odds > 0:
+        return 100 / (odds + 100)
+    if odds < 0:
+        odds = -odds
+        return odds / (odds + 100)
+    return .5
+
 # make prediction in user-readable format
 def parsePrediction(predict):
     away = convertPercentToOdds(predict[0][0])
@@ -107,8 +116,8 @@ def hasUnderdogValue(teams, market, prediction):
     else:
         prediction = [1, int(prediction[1])]
 
-    if int(prediction[1]) > UNDERDOG_CONFIDENCE:
-        return False
+    # if int(prediction[1]) > UNDERDOG_CONFIDENCE:
+    #     return False
 
     if prediction[0] == 0: tm = 0
     else: tm = 1
@@ -133,7 +142,9 @@ def hasUnderdogValue(teams, market, prediction):
             ml_odds = 100
         else:
             ml_odds = int(ml_odds)
-        if ml_odds > 0 and prediction[1] < UNDERDOG_CONFIDENCE:
+        # if ml_odds > 0 and prediction[1] < UNDERDOG_CONFIDENCE:
+        #     return True
+        if prediction[1] > convertOddsToPercent(ml_odds) + VALUE_THRESHOLD:
             return True
 
     ## spread
@@ -156,7 +167,33 @@ def hasUnderdogValue(teams, market, prediction):
             spread_odds = 100
         else:
             spread_odds = int(spread_odds)
-        if spread_odds > 0 and prediction[1] < UNDERDOG_CONFIDENCE:
+        # if spread_odds > 0 and prediction[1] < UNDERDOG_CONFIDENCE:
+        #     return True
+        if prediction[1] > convertOddsToPercent(spread_odds) + VALUE_THRESHOLD:
+            return True
+
+    if market == 'totals':
+        queries = populate_sheet.extractMarket('totals')
+        if queries['success'] == False:
+            return False
+        oddsQuery, inverted = populate_sheet.returnCorrectGame(queries['data'], teams)
+        if oddsQuery == False:
+            print('No odds found for underdog')
+            send_sms.send_confirmation("Unable to find totals odds for {} vs {}".format(teams[0], teams[1]))
+            return False
+
+        ou_odds = oddsQuery['totals']['odds']
+        if inverted:
+            tm = not tm
+
+        sou_odds = ou_odds[tm]
+        if ou_odds == 'EVEN':
+            ou_odds = 100
+        else:
+            ou_odds = int(ou_odds)
+        # if spread_odds > 0 and prediction[1] < UNDERDOG_CONFIDENCE:
+        #     return True
+        if prediction[1] > convertOddsToPercent(ou_odds) + VALUE_THRESHOLD:
             return True
     return False
 
@@ -243,14 +280,14 @@ def main(send_text=False, send_discord=False):
             print()
 
             ## text to me
-            ml_confident = checkIfConfident(ml_out, "Text")
-            spread_confident = checkIfConfident(spread_out, "Text")
-            ou_confident = checkIfConfident(ou_out, "Text")
+            # ml_confident = checkIfConfident(ml_out, "Text")
+            # spread_confident = checkIfConfident(spread_out, "Text")
+            # ou_confident = checkIfConfident(ou_out, "Text")
 
             ## discord API
-            ml_confident_discord = checkIfConfident(ml_out, "Discord")
-            spread_confident_discord = checkIfConfident(spread_out, "Discord")
-            ou_confident_discord = checkIfConfident(ou_out, "Discord")
+            # ml_confident_discord = checkIfConfident(ml_out, "Discord")
+            # spread_confident_discord = checkIfConfident(spread_out, "Discord")
+            # ou_confident_discord = checkIfConfident(ou_out, "Discord")
 
             ## underdog value?
             spread_underdog = None
@@ -260,6 +297,7 @@ def main(send_text=False, send_discord=False):
                     if str(g['game_id']) not in texted_games:
                         ml_underdog = hasUnderdogValue([away, home], 'h2h', ml_out)
                         spread_underdog = hasUnderdogValue([away, home], 'spreads', spread_out)
+                        ou_underdog = hasUnderdogValue([away, home], 'totals', ou_out)
                     else:
                         ml_underdog = False
                         spread_underdog = False
@@ -275,9 +313,10 @@ def main(send_text=False, send_discord=False):
 
             under_dog_ml = False
             under_dog_spread = False
+            under_dog_ou = False
 
             ## for underdog discord API
-            if str(g['game_id']) not in texted_games and send_discord and (ml_underdog or spread_underdog):
+            if str(g['game_id']) not in texted_games and send_discord and (ml_underdog or spread_underdog or ou_underdog):
                 dic_key = away + " vs " + home
                 if ml_underdog:
                     underdog_dict['ml'][dic_key] = str(ml_out)
@@ -285,6 +324,9 @@ def main(send_text=False, send_discord=False):
                 if spread_underdog:
                     underdog_dict['spread'][dic_key] = str(spread_out)
                     under_dog_spread = True
+                if ou_underdog:
+                    underdog_dict['ou'][dic_key] = str(ou_out)
+                    under_dog_ou = True
 
             ## only send text if odds are greater than 77% chance either way
             if str(g['game_id']) not in texted_games and send_text and (ml_confident or spread_confident or ou_confident or ml_underdog or spread_underdog):
@@ -293,7 +335,7 @@ def main(send_text=False, send_discord=False):
                     txt_buf += "ml: " + str(ml_out) + '\n'
                 if spread_confident or spread_underdog:
                     txt_buf += "spr: " + str(spread_out) + '\n'
-                if ou_confident:
+                if ou_confident or ou_underdog:
                     txt_buf += "o/u: " + str(ou_out) + '\n'
                 txt_buf += '\n'
 
@@ -313,14 +355,15 @@ def main(send_text=False, send_discord=False):
         if send_text:
             try:
                 send_sms.send_pred(txt_buf.strip())
-                if send_discord:
-                    send_message_to_discord(discord_dict)
-                    send_underdogs_to_discord(underdog_dict)
+                # if send_discord:
+                #     send_message_to_discord(discord_dict)
+                #     send_underdogs_to_discord(underdog_dict)
 
                 success = None
                 for x in range(4):
                     try:
-                        success = populate_sheet.updateSpreadsheets(TEXT_CONFIDENCE, DISCORD_CONFIDENCE, UNDERDOG_CONFIDENCE, txt_buf, underdog_dict)
+                        # success = populate_sheet.updateSpreadsheets(TEXT_CONFIDENCE, DISCORD_CONFIDENCE, UNDERDOG_CONFIDENCE, txt_buf, underdog_dict)
+                        success = populate_sheet.updateSpreadsheets(10000, 10000, 10000, txt_buf, underdog_dict)
                         break
                     except requests.exceptions.ConnectionError:
                         print("Connection Error for updating spreadsheet")

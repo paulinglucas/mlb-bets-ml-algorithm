@@ -29,8 +29,8 @@ def main():
 
         # get gamepack files located in team_gameData
         print("GENERATING GAMEPACK FILES FOR YEAR " + str(yr))
-        g = GamePackGetter(yr)
-        g.generateLists()
+        # g = GamePackGetter(yr)
+        # g.generateLists()
 
         # get player data for specific year
         print()

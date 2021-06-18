@@ -63,13 +63,17 @@ class Predictor:
         for batter in lineup:
             try:
                 batterGmpk = self.BATTERS[batter]['gmpksInOrder'][-1]
+
+                if not self.BATTERS[batter]['gmpks'][batterGmpk]:
+                    continue
+
                 if perGame:
                     statForGame = float(self.BATTERS[batter]['gmpks'][batterGmpk][stat]) / self.BATTERS[batter]['gmpks'][batterGmpk]['gamesPlayed']
                     statSum += statForGame
                 else:
                     statSum += float(self.BATTERS[batter]['gmpks'][batterGmpk][stat])
                 count += 1
-            except:
+            except Exception as e:
                 pass
         if perGame:
             statAvg = round(statSum, 3)
