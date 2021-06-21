@@ -316,20 +316,20 @@ def main(send_text=False, send_discord=False):
             under_dog_ou = False
 
             ## for underdog discord API
-            if str(g['game_id']) not in texted_games and send_discord and (ml_underdog or spread_underdog or ou_underdog):
-                dic_key = away + " vs " + home
-                if ml_underdog:
-                    underdog_dict['ml'][dic_key] = str(ml_out)
-                    under_dog_ml = True
-                if spread_underdog:
-                    underdog_dict['spread'][dic_key] = str(spread_out)
-                    under_dog_spread = True
-                if ou_underdog:
-                    underdog_dict['ou'][dic_key] = str(ou_out)
-                    under_dog_ou = True
+            # if str(g['game_id']) not in texted_games and send_discord and (ml_underdog or spread_underdog or ou_underdog):
+            #     dic_key = away + " vs " + home
+            #     if ml_underdog:
+            #         underdog_dict['ml'][dic_key] = str(ml_out)
+            #         under_dog_ml = True
+            #     if spread_underdog:
+            #         underdog_dict['spread'][dic_key] = str(spread_out)
+            #         under_dog_spread = True
+            #     if ou_underdog:
+            #         underdog_dict['ou'][dic_key] = str(ou_out)
+            #         under_dog_ou = True
 
             ## only send text if odds are greater than 77% chance either way
-            if str(g['game_id']) not in texted_games and send_text and (ml_confident or spread_confident or ou_confident or ml_underdog or spread_underdog):
+            if str(g['game_id']) not in texted_games and send_text:# and (ml_confident or spread_confident or ou_confident or ml_underdog or spread_underdog):
                 txt_buf += away + " vs " + home + '\n'
                 if ml_confident or ml_underdog:
                     txt_buf += "ml: " + str(ml_out) + '\n'
@@ -340,14 +340,14 @@ def main(send_text=False, send_discord=False):
                 txt_buf += '\n'
 
             ## for discord API
-            if str(g['game_id']) not in texted_games and send_discord and (ml_confident_discord or spread_confident_discord or ou_confident_discord):
-                dic_key = away + " vs " + home
-                if ml_confident_discord and not under_dog_ml:
-                    discord_dict['ml'][dic_key] = str(ml_out)
-                if spread_confident_discord and not under_dog_spread:
-                    discord_dict['spread'][dic_key] = str(spread_out)
-                if ou_confident_discord:
-                    discord_dict['ou'][dic_key] = str(ou_out)
+            # if str(g['game_id']) not in texted_games and send_discord and (ml_confident_discord or spread_confident_discord or ou_confident_discord):
+            #     dic_key = away + " vs " + home
+            #     if ml_confident_discord and not under_dog_ml:
+            #         discord_dict['ml'][dic_key] = str(ml_out)
+            #     if spread_confident_discord and not under_dog_spread:
+            #         discord_dict['spread'][dic_key] = str(spread_out)
+            #     if ou_confident_discord:
+            #         discord_dict['ou'][dic_key] = str(ou_out)
 
             ## write to texted games so predictions dont come in after game starts
             f.write(str(g['game_id']) + '\n')
