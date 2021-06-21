@@ -315,6 +315,11 @@ def main(send_text=False, send_discord=False):
             under_dog_spread = False
             under_dog_ou = False
 
+            # buffer vairables for now
+            ml_confident = False
+            spread_confident = False
+            ou_confident = False
+
             ## for underdog discord API
             # if str(g['game_id']) not in texted_games and send_discord and (ml_underdog or spread_underdog or ou_underdog):
             #     dic_key = away + " vs " + home
