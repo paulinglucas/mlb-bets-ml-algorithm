@@ -334,7 +334,7 @@ def main(send_text=False, send_discord=False):
             #         under_dog_ou = True
 
             ## only send text if odds are greater than 77% chance either way
-            if str(g['game_id']) not in texted_games and send_text:# and (ml_confident or spread_confident or ou_confident or ml_underdog or spread_underdog):
+            if str(g['game_id']) not in texted_games and send_text and (ml_underdog or spread_underdog or ou_underdog):# and (ml_confident or spread_confident or ou_confident or ml_underdog or spread_underdog):
                 txt_buf += away + " vs " + home + '\n'
                 if ml_confident or ml_underdog:
                     txt_buf += "ml: " + str(ml_out) + '\n'
@@ -357,7 +357,7 @@ def main(send_text=False, send_discord=False):
             ## write to texted games so predictions dont come in after game starts
             f.write(str(g['game_id']) + '\n')
 
-        if send_text:
+        if send_text and txt_buf != '':
             try:
                 send_sms.send_pred(txt_buf.strip())
                 # if send_discord:
