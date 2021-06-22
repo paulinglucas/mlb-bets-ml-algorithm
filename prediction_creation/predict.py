@@ -186,7 +186,7 @@ def hasUnderdogValue(teams, market, prediction):
         if inverted:
             tm = not tm
 
-        sou_odds = ou_odds[tm]
+        ou_odds = ou_odds[tm]
         if ou_odds == 'EVEN':
             ou_odds = 100
         else:
