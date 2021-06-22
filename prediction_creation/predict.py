@@ -115,6 +115,8 @@ def hasUnderdogValue(teams, market, prediction):
         prediction = [0, int(prediction[0])]
     else:
         prediction = [1, int(prediction[1])]
+    ## for vlue play strat
+    prediction[1] = convertOddsToPercent(prediction[1])
 
     # if int(prediction[1]) > UNDERDOG_CONFIDENCE:
     #     return False
@@ -301,6 +303,7 @@ def main(send_text=False, send_discord=False):
                     else:
                         ml_underdog = False
                         spread_underdog = False
+                        ou_underdog = False
                     break
                 except requests.exceptions.ConnectionError:
                     print("Connection Error for looking up odds to predict")
