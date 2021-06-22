@@ -357,7 +357,7 @@ def main(send_text=False, send_discord=False):
             ## write to texted games so predictions dont come in after game starts
             f.write(str(g['game_id']) + '\n')
 
-        if send_text and txt_buf != '':
+        if send_text:
             try:
                 send_sms.send_pred(txt_buf.strip())
                 # if send_discord:
