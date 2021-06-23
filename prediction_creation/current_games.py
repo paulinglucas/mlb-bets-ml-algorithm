@@ -136,8 +136,8 @@ def main():
     # o.extractAllOdds()
 
     # create lists to load into machine learning algorithm
-    # l = lst.ListCreator(YEAR)
-    # l.addToList()
+    l = lst.ListCreator(YEAR)
+    l.addToList()
     # l.checkOdds()
     # l.spread()
 
